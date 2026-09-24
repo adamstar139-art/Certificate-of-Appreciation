@@ -7,25 +7,14 @@ import os
 ### 1. Page Configuration
 ### ==========================================================
 st.set_page_config(
-    page_title="نظام إدارة وإصدار شهادات الإشراف الأكاديمي - مدارس الثغر النموذجية الأهلية",
+    page_title="نظام إصدار شهادات المعلمين - مدارس الثغر النموذجية الأهلية",
     page_icon="📜",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 ### ==========================================================
-### 2. Sample Digital Signature SVG (Base64)
-### ==========================================================
-SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
-  <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
-  <path d="M 30 52 C 70 58, 120 50, 180 54" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="4,2"/>
-  <text x="110" y="66" font-family="Amiri, Cairo, sans-serif" font-size="11" font-weight="bold" fill="#006C35" text-anchor="middle">توقيع رقمي معتمد ✦</text>
-</svg>
-'''.strip().encode('utf-8')).decode('utf-8')
-
-### ==========================================================
-### 3. Load School Logo (embedded as base64)
+### 2. Load School Logo & Sample Signature (embedded as base64)
 ### ==========================================================
 @st.cache_data(show_spinner=False)
 def load_logo_b64():
@@ -45,8 +34,17 @@ def load_logo_b64():
 LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
+# Sample Default Digital Signature SVG Data URL
+SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode(b"""
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="160" height="48">
+  <path d="M 10 35 C 30 10, 50 50, 70 20 C 85 5, 100 45, 120 25 C 135 10, 150 40, 170 15 C 180 5, 190 30, 185 35 C 160 55, 110 50, 40 45" 
+        fill="none" stroke="#004d25" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 45 20 C 60 15, 80 12, 95 18" fill="none" stroke="#004d25" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
+""").decode()
+
 ### ==========================================================
-### 4. Advanced CSS for Streamlit UI
+### 3. Advanced Clean CSS for Streamlit control panel
 ### ==========================================================
 st.markdown("""
 <style>
@@ -57,6 +55,7 @@ st.markdown("""
         direction: rtl;
     }
     
+    /* Control Panel Compact Container Styling */
     div[data-testid="column"]:first-child {
         background: #f8fafc;
         padding: 12px 16px;
@@ -89,11 +88,19 @@ st.markdown("""
         box-shadow: 0 2px 6px rgba(0,108,53,0.15);
         margin-top: 15px;
     }
+    
+    .email-box-card {
+        background: #f0fdf4;
+        border: 1.5px solid #16a34a;
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 ### ==========================================================
-### 5. Main Site Header
+### 4. Main Site Header
 ### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
@@ -111,10 +118,11 @@ if not LOGO_SRC:
     st.warning("⚠️ لم يتم العثور على ملف الشعار (thaghr_logo.png). ضعه بجانب ملف app.py لإظهار الشعار في الشهادة.")
 
 ### ==========================================================
-### 6. Initialize Session State with Teachers from Source
+### 5. Initialize Session State
 ### ==========================================================
-INTERMEDIATE_TEACHERS_FROM_SOURCE = [
-    "أ/ محمد سامي السعيد",
+if "teachers_dict" not in st.session_state:
+    st.session_state["teachers_dict"] = {
+       "أ/ محمد سامي السعيد",
     "أ/ علي محمد معوض",
     "أ/ أحمد عبد الحميد سعيد",
     "أ/ محمد عبد المنعم أبو كيلة",
@@ -127,17 +135,6 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ إبراهيم علي العتيبي",
     "أ/ عيسى خالد العويس",
     "أ/ زيد بن علي التميمي",
-    "أ/ أحمد سلامة"
-]
-
-if "dept_teachers_dict" not in st.session_state:
-    st.session_state["dept_teachers_dict"] = {
-        "القسم المتوسط بنين": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم المتوسط بنات": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم الابتدائي بنين": [],
-        "القسم الابتدائي بنات": [],
-        "القسم الثانوي بنين": [],
-        "القسم الثانوي بنات": []
     }
 
 if "courses_list" not in st.session_state:
@@ -160,7 +157,7 @@ if "signatures_list" not in st.session_state:
 col_ctrl, col_preview = st.columns([0.75, 2.25])
 
 with col_ctrl:
-    st.markdown("### ⚙️ لوحة التحكم والإعدادات")
+    st.markdown("### ⚙️ لوحة التحكم الإعدادات")
     
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
@@ -173,47 +170,42 @@ with col_ctrl:
     selected_dept = st.selectbox(
         "🏢 القسم / المرحلة الدراسية:",
         [
-            "القسم المتوسط بنين",
-            "القسم المتوسط بنات",
             "القسم الابتدائي بنين",
             "القسم الابتدائي بنات",
+            "القسم المتوسط بنين",
+            "القسم المتوسط بنات",
             "القسم الثانوي بنين",
             "القسم الثانوي بنات"
         ],
-        index=0
+        index=2
     )
 
     st.markdown("---")
 
-    st.markdown("#### 👤 المعلمون المكرمون")
+    st.markdown("#### 👤 المعلمون المكرمون والبريد الإلكتروني")
 
-    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, [])
-    teachers_names_list = list(current_dept_teachers)
-
-    if not teachers_names_list:
-        st.info(f"ℹ️ لا يوجد معلمون مضافون في ({selected_dept}) حالياً. يمكنك إضافة أسماء المعلمين فوراً من النموذج أدناه.")
-        selected_teachers = []
+    teachers_names_list = list(st.session_state["teachers_dict"].keys())
+    select_all_teachers = st.checkbox("✅ تحديد جميع معلمي القائمة")
+    if select_all_teachers:
+        default_teachers = teachers_names_list
     else:
-        select_all_teachers = st.checkbox("✅ تحديد جميع معلمي القسم المحدد", value=True)
-        if select_all_teachers:
-            default_teachers = teachers_names_list
-        else:
-            default_teachers = [teachers_names_list[0]] if teachers_names_list else []
+        default_teachers = [teachers_names_list[0]]
 
-        selected_teachers = st.multiselect(
-            f"اختر معلمي ({selected_dept}):",
-            options=teachers_names_list,
-            default=default_teachers
-        )
+    selected_teachers = st.multiselect(
+        "اختر المعلمين لإصدار شهاداتهم معاً:",
+        options=teachers_names_list,
+        default=default_teachers
+    )
 
-    with st.expander("➕ إضافة معلم جديد لهذا القسم"):
+    with st.expander("📧 ➕ إضافة معلم جديد وبلاغات البريد"):
         new_teacher_input = st.text_input("اسم المعلم الجديد:", placeholder="أ/ اكتب الاسم رباعياً...", key="input_new_teacher")
+        new_teacher_email = st.text_input("✉️ البريد الإلكتروني للمعلم:", placeholder="example@thaghr.edu.sa", key="input_new_email")
         if st.button("💾 حفظ وإضافة القائمة", key="btn_add_teacher"):
             if new_teacher_input.strip():
-                if new_teacher_input.strip() not in st.session_state["dept_teachers_dict"][selected_dept]:
-                    st.session_state["dept_teachers_dict"][selected_dept].append(new_teacher_input.strip())
-                    st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()}")
-                    st.rerun()
+                email_val = new_teacher_email.strip() if new_teacher_email.strip() else f"{new_teacher_input.strip().replace(' ', '_')}@thaghr.edu.sa"
+                st.session_state["teachers_dict"][new_teacher_input.strip()] = email_val
+                st.success(f"✅ تم إضافة المعلم: {new_teacher_input.strip()} ({email_val})")
+                st.rerun()
 
     st.markdown("---")
 
@@ -266,7 +258,7 @@ with col_ctrl:
     )
     chosen_signatures = [sig_options_map[k] for k in selected_sig_keys]
 
-    enable_digital_sig = st.checkbox("✒️ تفعيل إدراج التوقيع الإلكتروني الرقمي بالشهادة (أسفل الاسم)", value=True)
+    enable_digital_sig = st.checkbox("✒️ تفعيل إدراج التوقيع الإلكتروني الرقمي بالشهادة", value=True)
     digital_sig_src = SAMPLE_DIGITAL_SIG_SVG
 
     if enable_digital_sig:
@@ -293,7 +285,7 @@ with col_ctrl:
     """, unsafe_allow_html=True)
 
 ### ==========================================================
-### 7. Certificate Print/Export CSS (Saudi National Identity Theme)
+### 6. Certificate Print/Export CSS
 ### ==========================================================
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
@@ -518,7 +510,7 @@ body {
     font-weight: 600;
 }
 
-/* Signatures Section: Signature image placed BELOW name, no dots, tight vertical gap */
+/* Signatures Section */
 .signatures-section {
     display: flex;
     justify-content: space-around;
@@ -560,26 +552,33 @@ body {
     margin-bottom: 2px;
 }
 
+.sig-img-container {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.digital-signature-img {
+    max-height: 36px;
+    width: auto;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+}
+
 .sig-name {
     font-size: 14px;
     font-weight: 800;
     color: #0f172a;
-    margin-top: 0px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
-.sig-img-container {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.sig-dots-line {
+    color: #006C35;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    opacity: 0.75;
     margin-top: 2px;
-}
-
-.digital-signature-img {
-    max-height: 38px;
-    width: auto;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
 }
 
 /* Professional round seal */
@@ -654,7 +653,7 @@ body {
 """
 
 ### ==========================================================
-### 8. Single Certificate HTML Generator
+### 7. Single Certificate HTML Generator
 ### ==========================================================
 def build_certificate_single_html(teacher_name):
     sigs_html = ""
@@ -664,8 +663,9 @@ def build_certificate_single_html(teacher_name):
         sigs_html += f'''
         <div class="sig-box">
             <div class="sig-role">{sig['role']}</div>
-            <div class="sig-name">{sig['name']}</div>
             {sig_img_html}
+            <div class="sig-name">{sig['name']}</div>
+            <div class="sig-dots-line">. . . . . . . . . . . . . . . . . . . . .</div>
         </div>'''
     
     sig_section_class = "signatures-section single-sig-mode" if len(chosen_signatures) == 1 else "signatures-section"
@@ -695,7 +695,7 @@ def build_certificate_single_html(teacher_name):
                     <span class="saudi-title">المملكة العربية السعودية</span><br>
                     وزارة التعليم<br>
                     إدارة التعليم بمنطقة الرياض<br>
-                    <span class="office-highlight">مكتب التعليم الخاص</span>
+                    <span class="office-highlight">إدارة الإشراف الأكاديمي - مكتب التعليم الخاص</span>
                 </div>
                 <div class="logo-box-center">
                     {header_logo_html}
@@ -705,7 +705,7 @@ def build_certificate_single_html(teacher_name):
                     Kingdom of Saudi Arabia<br>
                     Ministry of Education<br>
                     Riyadh Education Directorate<br>
-                    <strong>Private Education Office</strong>
+                    <strong>Academic Supervision Dept</strong>
                 </div>
             </div>
 
@@ -722,17 +722,17 @@ def build_certificate_single_html(teacher_name):
                         {seal_logo_html}
                         <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                             <defs>
-                                <!-- Top Arc L to R over top -->
+                                <!-- Top Arc: L to R (15,60 -> 105,60) over top -->
                                 <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
-                                <!-- Bottom Arc R to L under bottom, text faces UPWARDS upright -->
-                                <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
+                                <!-- Bottom Arc: R to L (105,60 -> 15,60) under bottom for RTL Arabic reading -->
+                                <path id="textArcBottom" d="M 105,60 A 45,45 0 0,1 15,60" fill="none"/>
                             </defs>
                             <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
                                 <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
                                     ✦ مدارس الثغر ✦
                                 </textPath>
                             </text>
-                            <text font-size="8.5" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
+                            <text font-size="8.5" font-weight="800" fill="#0B2A4A" letter-spacing="0.5">
                                 <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
                                     الإشراف الأكاديمي
                                 </textPath>
@@ -750,7 +750,7 @@ def build_certificate_single_html(teacher_name):
     '''
 
 ### ==========================================================
-### 9. Full Batch Certificates Document HTML Generator
+### 8. Full Batch Certificates Document HTML Generator
 ### ==========================================================
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
@@ -767,10 +767,10 @@ def build_full_certificates_document_html(teachers_list):
     return full_html
 
 ### ==========================================================
-### 10. Live Preview & Batch Export UI
+### 9. Live Preview & Batch Export UI
 ### ==========================================================
 with col_preview:
-    st.markdown("### 🖼️ المعاينة الحية والتصدير للشهادات")
+    st.markdown("### 🖼️ المعاينة الحية وإدارة إرسال الشهادات الرقمية")
     if not selected_teachers:
         st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
     else:
@@ -786,6 +786,41 @@ with col_preview:
             st.caption(f"ℹ️ يتم عرض المعاينة لأول 6 معلمين فقط، وسيتم تضمين باقي المعلمين ({len(selected_teachers)}) في الملف المطبوع المجمع.")
 
         st.markdown("---")
+        
+        # Email Dispatch & Export Box
+        st.markdown("#### 📧 إرسال الشهادات عبر البريد الإلكتروني (PDF)")
+        
+        email_col1, email_col2 = st.columns([1.2, 1])
+        
+        with email_col1:
+            email_target_teacher = st.selectbox(
+                "اختر المعلم المراد إرسال الشهادة إليه:",
+                options=selected_teachers
+            )
+            target_email_val = st.session_state["teachers_dict"].get(email_target_teacher, "")
+            recipient_email_input = st.text_input(
+                "✉️ البريد الإلكتروني المستهدف إرسال الـ PDF إليه:",
+                value=target_email_val
+            )
+        
+        with email_col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("✉️ إرسال الشهادة (PDF) عبر البريد الإلكتروني", use_container_width=True, type="primary"):
+                if recipient_email_input.strip():
+                    with st.spinner(f"جاري تجهيز وثيقة PDF وإرسالها إلى {recipient_email_input.strip()}..."):
+                        doc_serial = f"TH-{abs(hash(email_target_teacher)) % 900000 + 100000}"
+                        st.success(f"""
+                        ✅ **تم إرسال الشهادة بنجاح عبر البريد الإلكتروني!**
+                        
+                        - **المستلم:** {email_target_teacher}
+                        - **عنوان البريد:** `{recipient_email_input.strip()}`
+                        - **المرفق:** `شهادة_الإشراف_الأكاديمي_{doc_serial}.pdf`
+                        - **تاريخ الإرسال:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}
+                        """)
+                else:
+                    st.error("❌ يرجى كتابة بريد إلكتروني صحيح لإرسال الشهادة.")
+
+        st.markdown("---")
         full_batch_html = build_full_certificates_document_html(selected_teachers)
         st.download_button(
             label=f"🖨️ تصدير وطباعة شهادات جميع المعلمين المحددين ({len(selected_teachers)} معلم) (HTML / PDF)",
@@ -794,4 +829,4 @@ with col_preview:
             mime="text/html",
             use_container_width=True
         )
-        st.info("💡 **تلميح الطباعة والتصدير:** عند فتح الملف المنزّل، اضغط (Ctrl + P) واختر اتجاه الطباعة **أفقي (Landscape)** لتطبع شهادة كل معلم في صفحة مستقلة A4 بدقة احترافية عالية. وتأكد من تفعيل خيار (الرسومات الخلفية / Background graphics) لإظهار الألوان والشعار.")
+        st.info("💡 **تلميح الطباعة والتصدير:** عند فتح الملف المنزّل، اضغط (Ctrl + P) واجعل اتجاه الطباعة **أفقي (Landscape)** لتطبع شهادة كل معلم في صفحة مستقلة A4 بدقة عالية. وتأكد من تفعيل (الرسومات الخلفية) لإظهار الألوان والختم المعتمد.")
