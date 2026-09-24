@@ -2,11 +2,6 @@ import streamlit as st
 import datetime
 import base64
 import os
-import subprocess
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 
 ### ==========================================================
 ### 1. Page Configuration
@@ -118,31 +113,31 @@ if not LOGO_SRC:
 ### ==========================================================
 ### 6. Initialize Session State with Teachers from Source
 ### ==========================================================
-INTERMEDIATE_TEACHERS_FROM_SOURCE = {
-    "أ/ محمد سامي السعيد": "m.saeed@thaghr.edu.sa",
-    "أ/ علي محمد معوض": "a.moawad@thaghr.edu.sa",
-    "أ/ أحمد عبد الحميد سعيد": "a.saeed@thaghr.edu.sa",
-    "أ/ محمد عبد المنعم أبو كيلة": "m.abukeila@thaghr.edu.sa",
-    "أ/ هيثم رضا عطية": "h.attya@thaghr.edu.sa",
-    "أ/ عماد الدين نصر كرم": "e.karam@thaghr.edu.sa",
-    "أ/ السيد الغريب بدوي": "s.badawi@thaghr.edu.sa",
-    "أ/ محمد إبراهيم عبد الرحمن": "m.abdulrahman@thaghr.edu.sa",
-    "أ/ أسامة أحمد سالم": "o.salem@thaghr.edu.sa",
-    "أ/ عماد بكر عارف": "e.arif@thaghr.edu.sa",
-    "أ/ إبراهيم علي العتيبي": "i.alotaibi@thaghr.edu.sa",
-    "أ/ عيسى خالد العويس": "e.alowais@thaghr.edu.sa",
-    "أ/ زيد بن علي التميمي": "z.altamimi@thaghr.edu.sa",
-    "أ/ أحمد سلامة": "a.salama@thaghr.edu.sa"
-}
+INTERMEDIATE_TEACHERS_FROM_SOURCE = [
+    "أ/ محمد سامي السعيد",
+    "أ/ علي محمد معوض",
+    "أ/ أحمد عبد الحميد سعيد",
+    "أ/ محمد عبد المنعم أبو كيلة",
+    "أ/ هيثم رضا عطية",
+    "أ/ عماد الدين نصر كرم",
+    "أ/ السيد الغريب بدوي",
+    "أ/ محمد إبراهيم عبد الرحمن",
+    "أ/ أسامة أحمد سالم",
+    "أ/ عماد بكر عارف",
+    "أ/ إبراهيم علي العتيبي",
+    "أ/ عيسى خالد العويس",
+    "أ/ زيد بن علي التميمي",
+    "أ/ أحمد سلامة"
+]
 
 if "dept_teachers_dict" not in st.session_state:
     st.session_state["dept_teachers_dict"] = {
-        "القسم المتوسط بنين": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم المتوسط بنات": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم الابتدائي بنين": {},
-        "القسم الابتدائي بنات": {},
-        "القسم الثانوي بنين": {},
-        "القسم الثانوي بنات": {}
+        "القسم المتوسط بنين": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
+        "القسم المتوسط بنات": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
+        "القسم الابتدائي بنين": [],
+        "القسم الابتدائي بنات": [],
+        "القسم الثانوي بنين": [],
+        "القسم الثانوي بنات": []
     }
 
 if "courses_list" not in st.session_state:
@@ -190,10 +185,10 @@ with col_ctrl:
 
     st.markdown("---")
 
-    st.markdown("#### 👤 المعلمون المكرمون والبريد الإلكتروني")
+    st.markdown("#### 👤 المعلمون المكرمون")
 
-    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, {})
-    teachers_names_list = list(current_dept_teachers.keys())
+    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, [])
+    teachers_names_list = list(current_dept_teachers)
 
     if not teachers_names_list:
         st.info(f"ℹ️ لا يوجد معلمون مضافون في ({selected_dept}) حالياً. يمكنك إضافة أسماء المعلمين فوراً من النموذج أدناه.")
@@ -211,15 +206,14 @@ with col_ctrl:
             default=default_teachers
         )
 
-    with st.expander("📧 ➕ إضافة معلم جديد لهذا القسم"):
+    with st.expander("➕ إضافة معلم جديد لهذا القسم"):
         new_teacher_input = st.text_input("اسم المعلم الجديد:", placeholder="أ/ اكتب الاسم رباعياً...", key="input_new_teacher")
-        new_teacher_email = st.text_input("✉️ البريد الإلكتروني للمعلم:", placeholder="example@thaghr.edu.sa", key="input_new_email")
         if st.button("💾 حفظ وإضافة القائمة", key="btn_add_teacher"):
             if new_teacher_input.strip():
-                email_val = new_teacher_email.strip() if new_teacher_email.strip() else f"{new_teacher_input.strip().replace(' ', '_')}@thaghr.edu.sa"
-                st.session_state["dept_teachers_dict"][selected_dept][new_teacher_input.strip()] = email_val
-                st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()} ({email_val})")
-                st.rerun()
+                if new_teacher_input.strip() not in st.session_state["dept_teachers_dict"][selected_dept]:
+                    st.session_state["dept_teachers_dict"][selected_dept].append(new_teacher_input.strip())
+                    st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()}")
+                    st.rerun()
 
     st.markdown("---")
 
@@ -285,14 +279,14 @@ with col_ctrl:
 
     with st.expander("➕ إضافة توقيع مسؤول جديد"):
         new_sig_role = st.text_input("المسمى الوظيفي:", placeholder="مثال: رئيس قسم الإشراف الأكاديمي", key="input_sig_role")
-        new_sig_name = st.text_input("اسم صاحب التوقيع:", placeholder="مثال: د. ياسين البدراوي ", key="input_sig_name")
+        new_sig_name = st.text_input("اسم صاحب التوقيع:", placeholder="مثال: د. محمد العتيبي", key="input_sig_name")
         if st.button("💾 حفظ التوقيع", key="btn_add_sig"):
             if new_sig_role.strip() and new_sig_name.strip():
                 st.session_state["signatures_list"].append({"role": new_sig_role.strip(), "name": new_sig_name.strip()})
                 st.success("✅ تم إضافة التوقيع بنجاح!")
                 st.rerun()
 
-        st.markdown("""
+    st.markdown("""
     <div class="designer-credit-badge">
         ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
@@ -756,7 +750,7 @@ def build_certificate_single_html(teacher_name):
     '''
 
 ### ==========================================================
-### 9. Full Batch Certificates Document HTML Generator & PDF Converter
+### 9. Full Batch Certificates Document HTML Generator
 ### ==========================================================
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
@@ -772,79 +766,32 @@ def build_full_certificates_document_html(teachers_list):
     )
     return full_html
 
-def convert_html_to_pdf_bytes(html_content):
-    """ Converts certificate HTML to PDF bytes using wkhtmltopdf """
-    try:
-        temp_html_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.html"
-        temp_pdf_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.pdf"
-        
-        with open(temp_html_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-            
-        cmd = [
-            "wkhtmltopdf",
-            "--page-size", "A4",
-            "--orientation", "Landscape",
-            "--margin-top", "0",
-            "--margin-bottom", "0",
-            "--margin-left", "0",
-            "--margin-right", "0",
-            temp_html_path,
-            temp_pdf_path
-        ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
-        
-        if os.path.exists(temp_pdf_path) and os.path.getsize(temp_pdf_path) > 0:
-            with open(temp_pdf_path, "rb") as f:
-                pdf_data = f.read()
-            os.remove(temp_html_path)
-            os.remove(temp_pdf_path)
-            return pdf_data
-    except Exception:
-        pass
-    return None
+### ==========================================================
+### 10. Live Preview & Batch Export UI
+### ==========================================================
+with col_preview:
+    st.markdown("### 🖼️ المعاينة الحية والتصدير للشهادات")
+    if not selected_teachers:
+        st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
+    else:
+        st.markdown(f"**عدد المعلمين المحدد لاصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**")
 
-def send_smtp_email(server_host, server_port, sender_email, sender_pass, use_tls, recipient_email, teacher_name, cert_title, doc_id, pdf_bytes):
-    """ Real SMTP Email Dispatcher """
-    msg = MIMEMultipart()
-    msg['From'] = f"إدارة الإشراف الأكاديمي - مدارس الثغر <{sender_email}>"
-    msg['To'] = recipient_email
-    msg['Subject'] = f"📜 {cert_title} - المعلم: {teacher_name} (مدارس الثغر النموذجية الأهلية)"
-    
-    body = f"""السلام عليكم ورحمة الله وبركاته،
+        preview_tabs = st.tabs([f"📜 شهادة: {t}" for t in selected_teachers[:6]])
+        for idx, tab_teacher in enumerate(selected_teachers[:6]):
+            with preview_tabs[idx]:
+                single_cert_html = build_full_certificates_document_html([tab_teacher])
+                st.components.v1.html(single_cert_html, height=710, scrolling=True)
 
-المعلم الفاضل: {teacher_name} المحترم،
-تحية طيبة وبعد،،
+        if len(selected_teachers) > 6:
+            st.caption(f"ℹ️ يتم عرض المعاينة لأول 6 معلمين فقط، وسيتم تضمين باقي المعلمين ({len(selected_teachers)}) في الملف المطبوع المجمع.")
 
-تتقدم لكم إدارة الإشراف الأكاديمي بمدارس الثغر النموذجية الأهلية ببالغ التقدير والامتنان، وتمنحكم ({cert_title}).
-
-مرفق مع هذه الرسالة النسخة المعتمدة والرسمية بصيغة (PDF) للشهادة.
-
-• رقم الوثيقة المعتمدة: {doc_id}
-• القسم/المرحلة: {selected_dept}
-• تاريخ الإصدار: {formatted_date}
-
-مع أطيب تحياتنا ودعواتنا لكم بدوام التوفيق والتميز.
-
----
-إدارة الإشراف الأكاديمي
-مدارس الثغر النموذجية الأهلية
-    """
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
-    
-    if pdf_bytes:
-        part = MIMEApplication(pdf_bytes, Name=f"Certificate_{doc_id}.pdf")
-        part['Content-Disposition'] = f'attachment; filename="Certificate_{doc_id}.pdf"'
-        msg.attach(part)
-        
-    server = smtplib.SMTP(server_host, int(server_port), timeout=12)
-    if use_tls:
-        server.starttls()
-    if sender_pass.strip():
-        server.login(sender_email, sender_pass.strip())
-    server.sendmail(sender_email, [recipient_email], msg.as_string())
-    server.quit()
-    return True
-
-
+        st.markdown("---")
+        full_batch_html = build_full_certificates_document_html(selected_teachers)
+        st.download_button(
+            label=f"🖨️ تصدير وطباعة شهادات جميع المعلمين المحددين ({len(selected_teachers)} معلم) (HTML / PDF)",
+            data=full_batch_html,
+            file_name=f"Thaghr_Certificates_Batch_({len(selected_teachers)}_teachers).html",
+            mime="text/html",
+            use_container_width=True
+        )
         st.info("💡 **تلميح الطباعة والتصدير:** عند فتح الملف المنزّل، اضغط (Ctrl + P) واختر اتجاه الطباعة **أفقي (Landscape)** لتطبع شهادة كل معلم في صفحة مستقلة A4 بدقة احترافية عالية. وتأكد من تفعيل خيار (الرسومات الخلفية / Background graphics) لإظهار الألوان والشعار.")
