@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import base64
 import os
+import subprocess
 
 ##### ==========================================================
 ##### 1. Page Configuration
@@ -20,7 +21,7 @@ SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
   <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
   <path d="M 30 52 C 70 58, 120 50, 180 54" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="4,2"/>
-  <text x="110" y="66" font-family="Amiri, Cairo, sans-serif" font-size="11" font-weight="bold" fill="#006C35" text-anchor="middle">توقيع رقمي معتمد ✦</text>
+  <text x="110" y="66" font-family="'Amiri', 'Cairo', sans-serif" font-size="11" font-weight="bold" fill="#006C35" text-anchor="middle">توقيع رقمي معتمد ✦</text>
 </svg>
 '''.strip().encode('utf-8')).decode('utf-8')
 
@@ -46,24 +47,65 @@ LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
 ##### ==========================================================
-##### 4. Advanced CSS for Streamlit UI
+##### 4. Advanced CSS for Streamlit UI (Full RTL & Modern Styling)
 ##### ==========================================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-    html, body, [class*="css"] {
-        font-family: 'Cairo', sans-serif;
+    
+    /* Full Application Right-To-Left (RTL) Enforcement */
+    html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        direction: rtl !important;
+        text-align: right !important;
+        font-family: 'Cairo', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif !important;
     }
+
+    /* Sidebar RTL styling */
+    [data-testid="stSidebar"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* All Input Widgets RTL */
+    .stTextInput input, .stTextArea textarea, .stSelectbox select, div[role="combobox"], 
+    .stMultiSelect div, div[role="radiogroup"], .stNumberInput input, .stDateInput input {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Labels & Radio / Checkbox Texts RTL */
+    label, .stRadio label, .stCheckbox label, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Custom Credit Badge */
     .designer-credit-badge {
         background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
         color: #D4AF37;
-        padding: 10px;
+        padding: 12px;
         border-radius: 8px;
         text-align: center;
         font-weight: bold;
         font-size: 14px;
         border: 1px solid #D4AF37;
         margin-top: 15px;
+        direction: rtl;
+    }
+
+    /* Custom PDF Export Button Highlight */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #006C35 0%, #004D25 100%) !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: 1px solid #D4AF37 !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        direction: rtl !important;
+    }
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #0B2A4A 0%, #006C35 100%) !important;
+        color: #D4AF37 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -73,7 +115,7 @@ st.markdown("""
 ##### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: white; border-radius: 10px; margin-bottom: 20px;">
+<div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: white; border-radius: 10px; margin-bottom: 20px; direction: rtl;">
     {_header_logo}
     <h1 style="margin:0; font-size: 26px;">📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي</h1>
     <h3 style="margin:5px 0 0 0; font-size: 16px; color: #D4AF37;">مدارس الثغر النموذجية الأهلية</h3>
@@ -84,7 +126,7 @@ if not LOGO_SRC:
     st.warning("⚠️ لم يتم العثور على ملف الشعار (thaghr_logo.png). ضعه بجانب ملف app.py لإظهار الشعار في الشهادة.")
 
 ##### ==========================================================
-##### 6. Initialize Session State with Teachers
+##### 6. Initialize Session State with Teachers & Signatures
 ##### ==========================================================
 INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ محمد سامي السعيد",
@@ -270,9 +312,9 @@ with col_ctrl:
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
 @page { size: A4 landscape; margin: 0; }
-body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
+body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', 'Noto Naskh Arabic', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
 .page-break { page-break-after: always; break-after: page; margin-bottom: 30px; }
-.certificate-container { width: 980px; height: 650px; margin: 0 auto; background: #ffffff; padding: 20px; box-sizing: border-box; position: relative; border: 14px solid #006C35; outline: 4px solid #D4AF37; outline-offset: -9px; border-radius: 14px; box-shadow: 0 14px 38px rgba(0,0,0,0.14); overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); }
+.certificate-container { width: 980px; height: 650px; margin: 0 auto; background: #ffffff; padding: 20px; box-sizing: border-box; position: relative; border: 14px solid #006C35; outline: 4px solid #D4AF37; outline-offset: -9px; border-radius: 14px; box-shadow: 0 14px 38px rgba(0,0,0,0.14); overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); direction: rtl; }
 .watermark-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: auto; opacity: 0.055; pointer-events: none; z-index: 1; }
 .corner { position: absolute; width: 44px; height: 44px; z-index: 3; border-color: #D4AF37; }
 .corner-tr { top: 16px; right: 16px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 8px 0 0; }
@@ -281,7 +323,7 @@ body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo'
 .corner-bl { bottom: 16px; left: 16px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 8px; }
 .inner-border { border: 2px solid #D4AF37; height: 100%; padding: 12px 26px; box-sizing: border-box; border-radius: 8px; position: relative; z-index: 2; background: rgba(255,255,255,0.88); }
 .saudi-nat-header-bar { height: 5px; background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%); border-radius: 3px; margin-bottom: 8px; }
-.cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #006C35; padding-bottom: 8px; margin-bottom: 8px; }
+.cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #006C35; padding-bottom: 8px; margin-bottom: 8px; direction: rtl; }
 .header-side { font-size: 11.5px; font-weight: 700; color: #1e293b; line-height: 1.5; text-align: right; flex: 1.1; }
 .header-side.left-side { text-align: left; direction: ltr; }
 .saudi-title { color: #006C35; font-weight: 900; font-size: 12.5px; }
@@ -290,7 +332,7 @@ body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo'
 .thaghr-logo-img { height: 70px; width: auto; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
 .dept-sub-badge { display: inline-block; font-size: 11px; color: #ffffff; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); padding: 2px 14px; border-radius: 12px; font-weight: 700; border: 1px solid #D4AF37; }
 .cert-title-badge { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; font-size: 21px; font-weight: 900; padding: 5px 40px; border-radius: 28px; border: 2px solid #D4AF37; box-shadow: 0 4px 14px rgba(0,108,53,0.25); margin: 2px 0 10px; letter-spacing: 0.5px; }
-.cert-body-box { margin-bottom: 8px; padding: 0 16px; }
+.cert-body-box { margin-bottom: 8px; padding: 0 16px; direction: rtl; }
 .cert-prefix-text { font-size: 14.5px; font-weight: 700; color: #334155; }
 .teacher-name { font-size: 27px; font-weight: 900; color: #006C35; margin: 4px 0; font-family: 'Amiri', serif; letter-spacing: 0.5px; text-shadow: 1px 1px 0 rgba(212,175,55,0.3); }
 .teacher-name::before, .teacher-name::after { content: " ✦ "; color: #D4AF37; font-size: 16px; vertical-align: middle; }
@@ -424,7 +466,38 @@ def build_full_certificates_document_html(teachers_list):
     return full_html
 
 ##### ==========================================================
-##### 10. Live Preview & Batch Export UI
+##### 10. PDF File Generator Helper Function
+##### ==========================================================
+def generate_pdf_bytes(html_content):
+    temp_dir = "/workspace/scratch"
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_html = os.path.join(temp_dir, "temp_certs.html")
+    temp_pdf = os.path.join(temp_dir, "temp_certs.pdf")
+
+    with open(temp_html, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    try:
+        cmd = [
+            "wkhtmltopdf",
+            "--quiet",
+            "--enable-local-file-access",
+            "-O", "Landscape",
+            "-s", "A4",
+            "-T", "0", "-B", "0", "-L", "0", "-R", "0",
+            temp_html,
+            temp_pdf
+        ]
+        subprocess.run(cmd, check=True)
+        if os.path.exists(temp_pdf):
+            with open(temp_pdf, "rb") as f:
+                return f.read()
+    except Exception:
+        pass
+    return None
+
+##### ==========================================================
+##### 11. Live Preview & PDF/HTML Export UI
 ##### ==========================================================
 with col_preview:
     st.markdown("### 🖼️ المعاينة الحية والتصدير والطباعة")
@@ -445,11 +518,31 @@ with col_preview:
         st.markdown("---")
 
         full_batch_html = build_full_certificates_document_html(selected_teachers)
-        st.download_button(
-            label=f"🖨️ تصدير وطباعة شهادات جميع المعلمين المحددين ({len(selected_teachers)} معلم) (HTML / PDF)",
-            data=full_batch_html,
-            file_name=f"Thaghr_Certificates_Batch_({len(selected_teachers)}_teachers).html",
-            mime="text/html",
-            use_container_width=True
-        )
-        st.info("💡 **تلميح الطباعة والتصدير:** عند فتح الملف المنزّل، اضغط (Ctrl + P) واختر اتجاه الطباعة **أفقي (Landscape)** لتطبع شهادة كل معلم في صفحة مستقلة A4 بدقة احترافية عالية. وتأكد من تفعيل خيار (الرسومات الخلفية / Background graphics) لإظهار الألوان والشعار.")
+
+        col_pdf, col_html = st.columns(2)
+
+        with col_pdf:
+            st.markdown("#### 📄 تصدير الشهادات كـ PDF")
+            pdf_bytes = generate_pdf_bytes(full_batch_html)
+            if pdf_bytes:
+                st.download_button(
+                    label=f"📥 📄 تحميل شهادات جميع المعلمين ({len(selected_teachers)}) كـ ملف PDF مباشر",
+                    data=pdf_bytes,
+                    file_name=f"Thaghr_Certificates_({len(selected_teachers)}_teachers).pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            else:
+                st.info("ℹ️ يمكنك حفظ الشهادات بصيغة PDF فورياً عبر خيار الطباعة المباشرة أدناه.")
+
+        with col_html:
+            st.markdown("#### 🖨️ تصدير وطباعة التنسيق الكامل (HTML/PDF)")
+            st.download_button(
+                label=f"📥 🖨️ فتح العرض المجمع للطباعة كـ PDF عبر المتصفح ({len(selected_teachers)} معلم)",
+                data=full_batch_html,
+                file_name=f"Thaghr_Certificates_Batch_({len(selected_teachers)}_teachers).html",
+                mime="text/html",
+                use_container_width=True
+            )
+
+        st.info("💡 **تلميح للتحميل والتصدير:** يمكنك النقر على زر **`📥 📄 تحميل كـ ملف PDF مباشر`** للحصول على ملف PDF جاهز فوراً، أو استخدام زر العرض المجمع للطباعة مباشرة من المتصفح عبر (Ctrl + P) واختيار **أفقي (Landscape)** ورسومات الخلفية.")
