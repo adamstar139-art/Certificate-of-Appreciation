@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 ### ==========================================================
-### 2. Sample Digital Signature SVG
+### 2. Sample Digital Signature SVG (Base64)
 ### ==========================================================
 SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
@@ -46,7 +46,7 @@ LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
 ### ==========================================================
-### 4. Advanced CSS for Streamlit UI
+### 4. Advanced CSS for Streamlit Control Panel UI
 ### ==========================================================
 st.markdown("""
 <style>
@@ -196,7 +196,6 @@ with col_ctrl:
 
     st.markdown("#### 👤 المعلمون المكرمون والبريد الإلكتروني")
 
-    # Dynamic teacher dictionary for selected department
     current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, INTERMEDIATE_TEACHERS_FROM_SOURCE)
     teachers_names_list = list(current_dept_teachers.keys())
 
@@ -273,7 +272,7 @@ with col_ctrl:
     )
     chosen_signatures = [sig_options_map[k] for k in selected_sig_keys]
 
-    enable_digital_sig = st.checkbox("✒️ تفعيل إدراج التوقيع الإلكتروني الرقمي بالشهادة", value=True)
+    enable_digital_sig = st.checkbox("✒️ تفعيل إدراج التوقيع الإلكتروني الرقمي بالشهادة (أسفل الاسم)", value=True)
     digital_sig_src = SAMPLE_DIGITAL_SIG_SVG
 
     if enable_digital_sig:
@@ -525,7 +524,7 @@ body {
     font-weight: 600;
 }
 
-/* Signatures Section */
+/* Signatures Section: Signature image placed BELOW name, no dots, tight vertical gap */
 .signatures-section {
     display: flex;
     justify-content: space-around;
@@ -567,33 +566,26 @@ body {
     margin-bottom: 2px;
 }
 
-.sig-img-container {
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.digital-signature-img {
-    max-height: 36px;
-    width: auto;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
-}
-
 .sig-name {
     font-size: 14px;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 2px;
+    margin-top: 0px;
+    margin-bottom: 4px;
 }
 
-.sig-dots-line {
-    color: #006C35;
-    font-weight: 800;
-    font-size: 13px;
-    letter-spacing: 2.5px;
-    opacity: 0.75;
+.sig-img-container {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 2px;
+}
+
+.digital-signature-img {
+    max-height: 38px;
+    width: auto;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
 }
 
 /* Professional round seal */
@@ -675,12 +667,12 @@ def build_certificate_single_html(teacher_name):
     for sig in chosen_signatures:
         sig_img_html = f'<div class="sig-img-container"><img src="{digital_sig_src}" class="digital-signature-img" alt="signature"></div>' if enable_digital_sig else '<div class="sig-img-container"></div>'
         
+        # Job Title -> Name -> Signature Image (no dots line, tight gap)
         sigs_html += f'''
         <div class="sig-box">
             <div class="sig-role">{sig['role']}</div>
-            {sig_img_html}
             <div class="sig-name">{sig['name']}</div>
-            <div class="sig-dots-line">. . . . . . . . . . . . . . . . . . . . .</div>
+            {sig_img_html}
         </div>'''
     
     sig_section_class = "signatures-section single-sig-mode" if len(chosen_signatures) == 1 else "signatures-section"
@@ -739,8 +731,8 @@ def build_certificate_single_html(teacher_name):
                             <defs>
                                 <!-- Top Arc L to R (15,60 -> 105,60) over top -->
                                 <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
-                                <!-- Bottom Arc R to L (105,60 -> 15,60) under bottom -->
-                                <path id="textArcBottom" d="M 105,60 A 45,45 0 0,1 15,60" fill="none"/>
+                                <!-- Bottom Arc R to L (105,60 -> 15,60) under bottom, text faces UPWARDS upright -->
+                                <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
                             </defs>
                             <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
                                 <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
@@ -782,7 +774,7 @@ def build_full_certificates_document_html(teachers_list):
     return full_html
 
 ### ==========================================================
-### 10. Live Preview, Batch Export UI & Email Dispatch System
+### 10. Live Preview, Batch Export UI & Advanced Email Dispatch
 ### ==========================================================
 with col_preview:
     st.markdown("### 🖼️ المعاينة الحية والتصدير وإرسال البريد الإلكتروني")
@@ -802,23 +794,47 @@ with col_preview:
 
         st.markdown("---")
 
-        # --- Email Dispatch Section ---
+        # --- Email Dispatch Section with "Select All" Option ---
         st.markdown("#### 📧 إرسال الشهادة (PDF) عبر البريد الإلكتروني المباشر")
-        col_em1, col_em2 = st.columns([1.2, 1])
-        with col_em1:
-            target_teacher_for_email = st.selectbox(
-                "اختر المعلم المراد إرسال شهادته إليها:",
-                options=selected_teachers,
-                key="select_email_teacher"
-            )
-            default_email_for_teacher = st.session_state["dept_teachers_dict"].get(selected_dept, {}).get(target_teacher_for_email, f"{target_teacher_for_email.replace(' ', '_')}@thaghr.edu.sa")
-            recipient_email_input = st.text_input("✉️ تأكيد البريد الإلكتروني للارسال:", value=default_email_for_teacher, key="input_target_email")
         
-        with col_em2:
-            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-            if st.button("✉️ إرسال الشهادة (PDF) عبر البريد الإلكتروني", use_container_width=True, type="primary"):
-                st.success(f"✅ تم إرسال الشهادة بنجاح بصيغة PDF إلى البريد الإلكتروني:\n**{recipient_email_input}**\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000})")
+        select_all_emails = st.checkbox(
+            f"✅ تحديد جميع المعلمين المحددين ({len(selected_teachers)} معلم) لإرسال الشهادات لهم دفعة واحدة",
+            value=True,
+            key="chk_select_all_emails"
+        )
+        
+        dept_email_map = st.session_state["dept_teachers_dict"].get(selected_dept, {})
+
+        if select_all_emails:
+            st.info(f"📧 سيتم إرسال الشهادات بصيغة PDF لجميع المعلمين المحددين ({len(selected_teachers)} معلم) على بريدهم الإلكتروني المسجل تلقائياً.")
+            
+            if st.button("✉️ إرسال الشهادات (PDF) لجميع المعلمين المحددين دفعة واحدة", type="primary", use_container_width=True, key="btn_send_batch_email"):
+                dispatch_details = []
+                for t in selected_teachers:
+                    t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
+                    doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
+                    dispatch_details.append(f"• **{t}** ➔ `{t_email}` (الوثيقة: `{doc_id}`)")
+                
+                msg_body = "\n".join(dispatch_details)
+                st.success(f"🎉 **تم إرسال الشهادات (PDF) بنجاح لجميع المعلمين المحددين ({len(selected_teachers)} معلم):**\n\n{msg_body}")
                 st.balloons()
+
+        else:
+            col_em1, col_em2 = st.columns([1.2, 1])
+            with col_em1:
+                target_teacher_for_email = st.selectbox(
+                    "اختر المعلم المراد إرسال شهادته إليها:",
+                    options=selected_teachers,
+                    key="select_email_teacher"
+                )
+                default_email_for_teacher = dept_email_map.get(target_teacher_for_email, f"{target_teacher_for_email.replace(' ', '_')}@thaghr.edu.sa")
+                recipient_email_input = st.text_input("✉️ تأكيد البريد الإلكتروني للارسال:", value=default_email_for_teacher, key="input_target_email")
+            
+            with col_em2:
+                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                if st.button("✉️ إرسال الشهادة (PDF) للمعلم المخصص", use_container_width=True, type="primary", key="btn_send_single_email"):
+                    st.success(f"✅ تم إرسال الشهادة بنجاح بصيغة PDF إلى البريد الإلكتروني:\n**{recipient_email_input}**\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000})")
+                    st.balloons()
 
         st.markdown("---")
         full_batch_html = build_full_certificates_document_html(selected_teachers)
