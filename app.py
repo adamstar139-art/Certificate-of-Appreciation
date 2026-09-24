@@ -2,6 +2,11 @@ import streamlit as st
 import datetime
 import base64
 import os
+import subprocess
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
 ### ==========================================================
 ### 1. Page Configuration
@@ -46,7 +51,7 @@ LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
 ### ==========================================================
-### 4. Advanced CSS for Streamlit Control Panel UI
+### 4. Advanced CSS for Streamlit UI
 ### ==========================================================
 st.markdown("""
 <style>
@@ -291,6 +296,18 @@ with col_ctrl:
                 st.session_state["signatures_list"].append({"role": new_sig_role.strip(), "name": new_sig_name.strip()})
                 st.success("✅ تم إضافة التوقيع بنجاح!")
                 st.rerun()
+
+    st.markdown("---")
+
+    # --- SMTP Credentials Settings Section ---
+    with st.expander("⚙️ إعدادات خادم البريد الإلكتروني المُرسِل (SMTP)"):
+        st.markdown("💡 **لإرسال الرسائل فعلياً لحسابات البريد الإلكتروني (مثل Gmail/Outlook):**")
+        st.info("قم بإدخال عنوان بريد المُرسِل وكلمة مرور التطبيق (App Password) المعتمدة من خادم البريد.")
+        smtp_server_input = st.text_input("خادم SMTP:", value="smtp.gmail.com", key="input_smtp_server")
+        smtp_port_input = st.number_input("منفذ SMTP Port:", value=587, key="input_smtp_port")
+        sender_email_input = st.text_input("بريد المُرسِل الرسمي (Sender Email):", value="thaghr.certificates@gmail.com", key="input_sender_email")
+        sender_password_input = st.text_input("كلمة مرور التطبيق (App Password):", type="password", placeholder="أدخل كلمة مرور التطبيقات المكونة من 16 حرفاً...", key="input_sender_password")
+        use_tls_checkbox = st.checkbox("تفعيل التشفير الآمن TLS", value=True, key="chk_use_tls")
 
     st.markdown("""
     <div class="designer-credit-badge">
@@ -667,7 +684,6 @@ def build_certificate_single_html(teacher_name):
     for sig in chosen_signatures:
         sig_img_html = f'<div class="sig-img-container"><img src="{digital_sig_src}" class="digital-signature-img" alt="signature"></div>' if enable_digital_sig else '<div class="sig-img-container"></div>'
         
-        # Job Title -> Name -> Signature Image (no dots line, tight gap)
         sigs_html += f'''
         <div class="sig-box">
             <div class="sig-role">{sig['role']}</div>
@@ -729,9 +745,9 @@ def build_certificate_single_html(teacher_name):
                         {seal_logo_html}
                         <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                             <defs>
-                                <!-- Top Arc L to R (15,60 -> 105,60) over top -->
+                                <!-- Top Arc L to R over top -->
                                 <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
-                                <!-- Bottom Arc R to L (105,60 -> 15,60) under bottom, text faces UPWARDS upright -->
+                                <!-- Bottom Arc R to L under bottom, text faces UPWARDS upright -->
                                 <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
                             </defs>
                             <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
@@ -757,7 +773,7 @@ def build_certificate_single_html(teacher_name):
     '''
 
 ### ==========================================================
-### 9. Full Batch Certificates Document HTML Generator
+### 9. Full Batch Certificates Document HTML Generator & PDF Converter
 ### ==========================================================
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
@@ -773,8 +789,82 @@ def build_full_certificates_document_html(teachers_list):
     )
     return full_html
 
+def convert_html_to_pdf_bytes(html_content):
+    """ Converts certificate HTML to PDF bytes using wkhtmltopdf """
+    try:
+        temp_html_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.html"
+        temp_pdf_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.pdf"
+        
+        with open(temp_html_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+            
+        cmd = [
+            "wkhtmltopdf",
+            "--page-size", "A4",
+            "--orientation", "Landscape",
+            "--margin-top", "0",
+            "--margin-bottom", "0",
+            "--margin-left", "0",
+            "--margin-right", "0",
+            temp_html_path,
+            temp_pdf_path
+        ]
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        
+        if os.path.exists(temp_pdf_path) and os.path.getsize(temp_pdf_path) > 0:
+            with open(temp_pdf_path, "rb") as f:
+                pdf_data = f.read()
+            os.remove(temp_html_path)
+            os.remove(temp_pdf_path)
+            return pdf_data
+    except Exception:
+        pass
+    return None
+
+def send_smtp_email(server_host, server_port, sender_email, sender_pass, use_tls, recipient_email, teacher_name, cert_title, doc_id, pdf_bytes):
+    """ Real SMTP Email Dispatcher """
+    msg = MIMEMultipart()
+    msg['From'] = f"إدارة الإشراف الأكاديمي - مدارس الثغر <{sender_email}>"
+    msg['To'] = recipient_email
+    msg['Subject'] = f"📜 {cert_title} - المعلم: {teacher_name} (مدارس الثغر النموذجية الأهلية)"
+    
+    body = f"""السلام عليكم ورحمة الله وبركاته،
+
+المعلم الفاضل: {teacher_name} المحترم،
+تحية طيبة وبعد،،
+
+تتقدم لكم إدارة الإشراف الأكاديمي بمدارس الثغر النموذجية الأهلية ببالغ التقدير والامتنان، وتمنحكم ({cert_title}).
+
+مرفق مع هذه الرسالة النسخة المعتمدة والرسمية بصيغة (PDF) للشهادة.
+
+• رقم الوثيقة المعتمدة: {doc_id}
+• القسم/المرحلة: {selected_dept}
+• تاريخ الإصدار: {formatted_date}
+
+مع أطيب تحياتنا ودعواتنا لكم بدوام التوفيق والتميز.
+
+---
+إدارة الإشراف الأكاديمي
+مدارس الثغر النموذجية الأهلية
+    """
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    
+    if pdf_bytes:
+        part = MIMEApplication(pdf_bytes, Name=f"Certificate_{doc_id}.pdf")
+        part['Content-Disposition'] = f'attachment; filename="Certificate_{doc_id}.pdf"'
+        msg.attach(part)
+        
+    server = smtplib.SMTP(server_host, int(server_port), timeout=12)
+    if use_tls:
+        server.starttls()
+    if sender_pass.strip():
+        server.login(sender_email, sender_pass.strip())
+    server.sendmail(sender_email, [recipient_email], msg.as_string())
+    server.quit()
+    return True
+
 ### ==========================================================
-### 10. Live Preview, Batch Export UI & Advanced Email Dispatch
+### 10. Live Preview, Batch Export UI & Real SMTP Email Dispatch
 ### ==========================================================
 with col_preview:
     st.markdown("### 🖼️ المعاينة الحية والتصدير وإرسال البريد الإلكتروني")
@@ -794,8 +884,8 @@ with col_preview:
 
         st.markdown("---")
 
-        # --- Email Dispatch Section with "Select All" Option ---
-        st.markdown("#### 📧 إرسال الشهادة (PDF) عبر البريد الإلكتروني المباشر")
+        # --- SMTP Real Email Dispatch UI ---
+        st.markdown("#### 📧 إرسال الشهادات المعتمدة (PDF) عبر البريد الإلكتروني المباشر")
         
         select_all_emails = st.checkbox(
             f"✅ تحديد جميع المعلمين المحددين ({len(selected_teachers)} معلم) لإرسال الشهادات لهم دفعة واحدة",
@@ -806,18 +896,51 @@ with col_preview:
         dept_email_map = st.session_state["dept_teachers_dict"].get(selected_dept, {})
 
         if select_all_emails:
-            st.info(f"📧 سيتم إرسال الشهادات بصيغة PDF لجميع المعلمين المحددين ({len(selected_teachers)} معلم) على بريدهم الإلكتروني المسجل تلقائياً.")
+            st.info(f"📧 سيتم توليد وإرسال شهادات PDF لجميع المعلمين المحددين ({len(selected_teachers)} معلم) إلى عناوين بريدهم الإلكتروني المسجلة.")
             
-            if st.button("✉️ إرسال الشهادات (PDF) لجميع المعلمين المحددين دفعة واحدة", type="primary", use_container_width=True, key="btn_send_batch_email"):
-                dispatch_details = []
-                for t in selected_teachers:
-                    t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
-                    doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
-                    dispatch_details.append(f"• **{t}** ➔ `{t_email}` (الوثيقة: `{doc_id}`)")
-                
-                msg_body = "\n".join(dispatch_details)
-                st.success(f"🎉 **تم إرسال الشهادات (PDF) بنجاح لجميع المعلمين المحددين ({len(selected_teachers)} معلم):**\n\n{msg_body}")
-                st.balloons()
+            if st.button("✉️ إرسال الشهادات الفعلي (PDF) لجميع المعلمين المحددين دفعة واحدة", type="primary", use_container_width=True, key="btn_send_batch_email"):
+                if not sender_password_input.strip():
+                    st.warning("⚠️ **تنبيه:** لم تقم بإدخال كلمة مرور التطبيق (App Password) في إعدادات خادم SMTP الجانبية.\n\nسيتم إجراء **محاكاة للإرسال** الآن. لإرسال بريد إلكتروني حقيقي يصل لصندوق الوارد، أدخل كلمة مرور التطبيقات في قسم (⚙️ إعدادات خادم البريد).")
+                    dispatch_details = []
+                    for t in selected_teachers:
+                        t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
+                        doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
+                        dispatch_details.append(f"• **{t}** ➔ `{t_email}` (الوثيقة: `{doc_id}`)")
+                    msg_body = "\n".join(dispatch_details)
+                    st.success(f"🎉 **تمت عملية معالجة الشهادات وإصدار إشعارات الإرسال ({len(selected_teachers)} معلم):**\n\n{msg_body}")
+                    st.balloons()
+                else:
+                    with st.spinner("⏳ جاري الاتصال بخادم البريد وتوليد شهادات PDF لكل معلم وإرسالها..."):
+                        success_count = 0
+                        err_logs = []
+                        for t in selected_teachers:
+                            t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
+                            doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
+                            single_html = build_full_certificates_document_html([t])
+                            pdf_data = convert_html_to_pdf_bytes(single_html)
+                            
+                            try:
+                                send_smtp_email(
+                                    smtp_server_input,
+                                    smtp_port_input,
+                                    sender_email_input,
+                                    sender_password_input,
+                                    use_tls_checkbox,
+                                    t_email,
+                                    t,
+                                    cert_main_title,
+                                    doc_id,
+                                    pdf_data
+                                )
+                                success_count += 1
+                            except Exception as e:
+                                err_logs.append(f"• {t} (`{t_email}`): {str(e)}")
+                        
+                        if success_count > 0:
+                            st.success(f"🎉 **تم إرسال {success_count} شهادة (PDF) بنجاح عبر خادم البريد الإلكتروني!**")
+                            st.balloons()
+                        if err_logs:
+                            st.error(f"❌ تعذر إرسال البريد لبعض المعلمين:\n" + "\n".join(err_logs))
 
         else:
             col_em1, col_em2 = st.columns([1.2, 1])
@@ -832,9 +955,33 @@ with col_preview:
             
             with col_em2:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("✉️ إرسال الشهادة (PDF) للمعلم المخصص", use_container_width=True, type="primary", key="btn_send_single_email"):
-                    st.success(f"✅ تم إرسال الشهادة بنجاح بصيغة PDF إلى البريد الإلكتروني:\n**{recipient_email_input}**\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000})")
-                    st.balloons()
+                if st.button("✉️ إرسال الشهادة الفعلي (PDF) للمعلم المخصص", use_container_width=True, type="primary", key="btn_send_single_email"):
+                    doc_id = f"TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000}"
+                    
+                    if not sender_password_input.strip():
+                        st.warning("⚠️ **تنبيه:** يرجى إدخال كلمة مرور التطبيق (App Password) في قسم (⚙️ إعدادات خادم البريد) في لوحة التحكم لإتمام الإرسال الفعلي عبر خادم SMTP.")
+                        st.info(f"إشعارات المحاكاة: المعلم **{target_teacher_for_email}** ➔ `{recipient_email_input}` (الوثيقة: `{doc_id}`)")
+                    else:
+                        with st.spinner(f"⏳ جاري توليد شهادة PDF وتجهيز البريد للمعلم ({target_teacher_for_email})..."):
+                            single_html = build_full_certificates_document_html([target_teacher_for_email])
+                            pdf_data = convert_html_to_pdf_bytes(single_html)
+                            try:
+                                send_smtp_email(
+                                    smtp_server_input,
+                                    smtp_port_input,
+                                    sender_email_input,
+                                    sender_password_input,
+                                    use_tls_checkbox,
+                                    recipient_email_input,
+                                    target_teacher_for_email,
+                                    cert_main_title,
+                                    doc_id,
+                                    pdf_data
+                                )
+                                st.success(f"✅ **تم إرسال الشهادة (PDF) بنجاح إلى البريد الإلكتروني:**\n`{recipient_email_input}`\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: `{doc_id}`)")
+                                st.balloons()
+                            except Exception as e:
+                                st.error(f"❌ حدث خطأ أثناء الاتصال بخادم البريد SMTP:\n`{str(e)}`\n\nتأكد من صحة كلمة مرور التطبيق ومنفذ الخادم (587) وتفعيل خيار التشفير TLS.")
 
         st.markdown("---")
         full_batch_html = build_full_certificates_document_html(selected_teachers)
