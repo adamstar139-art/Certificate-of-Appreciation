@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 ### ==========================================================
-### 2. Load School Logo (embedded as base64 so exported HTML is self-contained)
+### 2. Load School Logo (embedded as base64 for self-contained export)
 ### ==========================================================
 @st.cache_data(show_spinner=False)
 def load_logo_b64():
@@ -35,7 +35,7 @@ LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
 ### ==========================================================
-### 3. Advanced Clean CSS for the Streamlit control panel (RTL & Compact)
+### 3. Advanced CSS for Streamlit UI (Saudi National Identity Accents)
 ### ==========================================================
 st.markdown("""
 <style>
@@ -46,16 +46,15 @@ st.markdown("""
         direction: rtl;
     }
     
-    /* Control Panel Compact Container Styling */
+    /* Compact Control Panel Container */
     div[data-testid="column"]:first-child {
         background: #f8fafc;
         padding: 12px 16px;
         border-radius: 12px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #cbd5e1;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     
-    /* Reduce margins and space between inputs in control panel */
     div[data-testid="column"]:first-child .stMarkdown {
         margin-bottom: -6px;
     }
@@ -68,32 +67,41 @@ st.markdown("""
         margin-bottom: 8px;
     }
     
-    /* Footer credit badge */
+    /* Saudi National Identity Header Ribbon */
+    .saudi-top-bar {
+        height: 6px;
+        background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+    
+    /* Footer Credit Badge */
     .designer-credit-badge {
         text-align: center;
-        background: linear-gradient(135deg, #0B2A4A 0%, #16457a 100%);
+        background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
         color: #ffffff;
         padding: 8px 12px;
         border-radius: 8px;
         font-size: 12.5px;
         font-weight: 700;
         border: 1px solid #D4AF37;
-        box-shadow: 0 2px 6px rgba(11,42,74,0.15);
+        box-shadow: 0 2px 6px rgba(0,108,53,0.2);
         margin-top: 15px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 ### ==========================================================
-### 4. Main Site Header (with real school logo & Developer Credit)
+### 4. Main Site Header with Saudi National Identity Colors
 ### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 70px; margin-bottom: 8px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div style="text-align: center; padding: 10px 0 15px 0; border-bottom: 2px solid #0B2A4A; margin-bottom: 20px;">
+<div class="saudi-top-bar"></div>
+<div style="text-align: center; padding: 5px 0 15px 0; border-bottom: 2px solid #006C35; margin-bottom: 20px;">
     {_header_logo}
-    <h1 style="color: #0B2A4A; font-family: 'Cairo', sans-serif; margin-bottom: 4px; font-size: 25px; font-weight: 800;">📜 نظام إصدار شهادات التقدير والحضور الرقمية</h1>
-    <h3 style="color: #D4AF37; margin-top: 0; font-size: 17px; font-weight: 700;">مدارس الثغر النموذجية الأهلية</h3>
-    <div style="display: inline-block; background: #0B2A4A; color: #ffffff; padding: 4px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid #D4AF37;">
+    <h1 style="color: #006C35; font-family: 'Cairo', sans-serif; margin-bottom: 4px; font-size: 25px; font-weight: 800;">📜 نظام إصدار شهادات التقدير والحضور الرقمية</h1>
+    <h3 style="color: #0B2A4A; margin-top: 0; font-size: 17px; font-weight: 700;">مدارس الثغر النموذجية الأهلية</h3>
+    <div style="display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; padding: 4px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid #D4AF37;">
         ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
 </div>
@@ -133,11 +141,11 @@ if "signatures_list" not in st.session_state:
         {"role": "وكيل شؤون الطلاب", "name": "أ. صالح بن عبدالله الدعجاني"}
     ]
 
-# Optimized Column Ratios: Control Panel space reduced to 0.75, Preview area expanded to 2.25
+# Optimized Column Layout: Compact control panel (0.75), Wide preview canvas (2.25)
 col_ctrl, col_preview = st.columns([0.75, 2.25])
 
 with col_ctrl:
-    st.markdown("### ⚙️ لوحة التحكم الإعدادات")
+    st.markdown("### ⚙️ لوحة التحكم والإعدادات")
     
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
@@ -249,12 +257,12 @@ with col_ctrl:
 
     st.markdown("""
     <div class="designer-credit-badge">
-        🛠️ تصميم وتطوير: أ. محمد سامي السعيد
+        ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
     """, unsafe_allow_html=True)
 
 ### ==========================================================
-### 6. Certificate print/export CSS (navy + gold professional theme)
+### 6. Certificate Print/Export CSS (Saudi National Identity Theme)
 ### ==========================================================
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
@@ -281,41 +289,40 @@ body {
 }
 
 .certificate-container {
-    width: 1000px;
-    height: 675px;
+    width: 980px;
+    height: 650px;
     margin: 0 auto;
     background: #ffffff;
     padding: 20px;
     box-sizing: border-box;
     position: relative;
-    border: 14px solid #0B2A4A;
+    border: 14px solid #006C35;
     outline: 4px solid #D4AF37;
     outline-offset: -9px;
     border-radius: 14px;
     box-shadow: 0 14px 38px rgba(0,0,0,0.14);
     overflow: hidden;
-    background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfcfe 60%, #f4f7fb 100%);
+    background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%);
 }
 
-/* faint school logo watermark centered */
+/* Faint Watermark Centered */
 .watermark-logo {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 460px;
+    width: 440px;
     height: auto;
-    opacity: 0.06;
+    opacity: 0.055;
     pointer-events: none;
     z-index: 1;
-    filter: grayscale(10%);
 }
 
-/* decorative gold corners */
+/* Decorative Gold Corners */
 .corner {
     position: absolute;
-    width: 46px;
-    height: 46px;
+    width: 44px;
+    height: 44px;
     z-index: 3;
     border-color: #D4AF37;
 }
@@ -351,27 +358,35 @@ body {
 .inner-border {
     border: 2px solid #D4AF37;
     height: 100%;
-    padding: 16px 30px;
+    padding: 12px 26px;
     box-sizing: border-box;
     border-radius: 8px;
     position: relative;
     z-index: 2;
-    background: rgba(255,255,255,0.86);
+    background: rgba(255,255,255,0.88);
+}
+
+/* Header with Saudi National Identity Colors */
+.saudi-nat-header-bar {
+    height: 5px;
+    background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
+    border-radius: 3px;
+    margin-bottom: 8px;
 }
 
 .cert-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #0B2A4A;
+    border-bottom: 2px solid #006C35;
     padding-bottom: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .header-side {
     font-size: 11.5px;
     font-weight: 700;
-    color: #334155;
+    color: #1e293b;
     line-height: 1.5;
     text-align: right;
     flex: 1;
@@ -382,9 +397,22 @@ body {
     direction: ltr;
 }
 
+.saudi-title {
+    color: #006C35;
+    font-weight: 900;
+    font-size: 12.5px;
+}
+
 .office-highlight {
-    color: #0B2A4A;
+    display: inline-block;
+    background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
+    color: #ffffff;
+    padding: 2px 10px;
+    border-radius: 6px;
     font-weight: 800;
+    border: 1px solid #D4AF37;
+    font-size: 11px;
+    margin-top: 2px;
 }
 
 .logo-box-center {
@@ -396,18 +424,18 @@ body {
 }
 
 .thaghr-logo-img {
-    height: 76px;
+    height: 70px;
     width: auto;
     margin-bottom: 4px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
 }
 
 .dept-sub-badge {
     display: inline-block;
     font-size: 11px;
     color: #ffffff;
-    background: linear-gradient(135deg,#0B2A4A,#16457a);
-    padding: 2px 12px;
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+    padding: 2px 14px;
     border-radius: 12px;
     font-weight: 700;
     border: 1px solid #D4AF37;
@@ -415,37 +443,37 @@ body {
 
 .cert-title-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #0B2A4A 0%, #071B31 100%);
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
     color: #ffffff;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 900;
-    padding: 6px 42px;
+    padding: 5px 40px;
     border-radius: 28px;
     border: 2px solid #D4AF37;
-    box-shadow: 0 4px 14px rgba(11,42,74,0.25);
-    margin: 4px 0 12px;
+    box-shadow: 0 4px 14px rgba(0,108,53,0.25);
+    margin: 2px 0 10px;
     letter-spacing: 0.5px;
 }
 
 .cert-body-box {
-    margin-bottom: 12px;
-    padding: 0 18px;
+    margin-bottom: 8px;
+    padding: 0 16px;
 }
 
 .cert-prefix-text {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 700;
     color: #334155;
 }
 
 .teacher-name {
-    font-size: 28px;
+    font-size: 27px;
     font-weight: 900;
-    color: #0B2A4A;
-    margin: 6px 0;
+    color: #006C35;
+    margin: 4px 0;
     font-family: 'Amiri', serif;
     letter-spacing: 0.5px;
-    text-shadow: 1px 1px 0 rgba(212,175,55,0.25);
+    text-shadow: 1px 1px 0 rgba(212,175,55,0.3);
 }
 
 .teacher-name::before, .teacher-name::after {
@@ -456,45 +484,53 @@ body {
 }
 
 .cert-body-text {
-    font-size: 15.5px;
-    line-height: 1.85;
+    font-size: 15px;
+    line-height: 1.8;
     color: #1e293b;
     font-weight: 600;
 }
 
+/* Signatures Section: Dots placed UNDER the name for signature */
 .signatures-section {
     display: flex;
     justify-content: space-around;
-    align-items: flex-end;
-    margin-top: 16px;
-    padding-top: 8px;
+    align-items: flex-start;
+    margin-top: 12px;
+    padding-top: 4px;
 }
 
 .sig-box {
-    min-width: 165px;
+    min-width: 170px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .sig-role {
     font-size: 12.5px;
     font-weight: 800;
-    color: #0B2A4A;
+    color: #006C35;
     margin-bottom: 4px;
 }
 
-.sig-space {
-    height: 26px;
-}
-
 .sig-name {
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 800;
     color: #0f172a;
-    border-top: 1.5px dashed #94a3b8;
-    padding-top: 5px;
+    margin-bottom: 2px;
 }
 
-/* Professional round seal with SVG circular curved text */
+.sig-dots-line {
+    color: #0B2A4A;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    opacity: 0.75;
+    margin-top: 4px;
+}
+
+/* Professional round seal with upright SVG circular text */
 .school-seal {
     display: flex;
     flex-direction: column;
@@ -504,35 +540,35 @@ body {
 
 .seal-ring {
     position: relative;
-    width: 118px;
-    height: 118px;
+    width: 114px;
+    height: 114px;
     border-radius: 50%;
-    border: 3px double #0B2A4A;
+    border: 3px double #006C35;
     box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     background: #ffffff;
-    transform: rotate(-4deg);
+    transform: rotate(-3deg);
 }
 
 .seal-logo-img {
-    width: 52px;
+    width: 50px;
     height: auto;
     opacity: 0.92;
 }
 
 .seal-caption {
-    margin-top: 4px;
+    margin-top: 3px;
     font-size: 9px;
     font-weight: 800;
-    color: #0B2A4A;
+    color: #006C35;
 }
 
 .cert-footer-date {
     position: absolute;
     bottom: 8px;
-    right: 30px;
+    right: 28px;
     font-size: 10.5px;
     color: #64748b;
     font-weight: 700;
@@ -541,7 +577,7 @@ body {
 .cert-footer-serial {
     position: absolute;
     bottom: 8px;
-    left: 30px;
+    left: 28px;
     font-size: 10.5px;
     color: #64748b;
     font-weight: 700;
@@ -559,14 +595,14 @@ body {
     .certificate-container {
         box-shadow: none;
         width: 100%;
-        height: 100vh;
+        max-width: 1000px;
         border-radius: 0;
     }
 }
 """
 
 ### ==========================================================
-### 7. Single Certificate HTML Generator (with logo, watermark & curved SVG seal)
+### 7. Single Certificate HTML Generator
 ### ==========================================================
 def build_certificate_single_html(teacher_name):
     sigs_html = ""
@@ -574,8 +610,8 @@ def build_certificate_single_html(teacher_name):
         sigs_html += f'''
         <div class="sig-box">
             <div class="sig-role">{sig['role']}</div>
-            <div class="sig-space"></div>
             <div class="sig-name">{sig['name']}</div>
+            <div class="sig-dots-line">. . . . . . . . . . . . . . . . . . . . .</div>
         </div>'''
     
     body_text_html = cert_custom_text.replace("\n", "<br>")
@@ -597,9 +633,10 @@ def build_certificate_single_html(teacher_name):
         <div class="corner corner-bl"></div>
 
         <div class="inner-border">
+            <div class="saudi-nat-header-bar"></div>
             <div class="cert-header">
                 <div class="header-side">
-                    المملكة العربية السعودية<br>
+                    <span class="saudi-title">المملكة العربية السعودية</span><br>
                     وزارة التعليم<br>
                     إدارة التعليم بمنطقة الرياض<br>
                     <span class="office-highlight">مكتب التعليم الخاص</span>
@@ -629,15 +666,17 @@ def build_certificate_single_html(teacher_name):
                         {seal_logo_html}
                         <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                             <defs>
-                                <path id="textArcTop" d="M 15,60 A 45,45 0 1,1 105,60" fill="none"/>
+                                <!-- Top Arc: Right to Left over top (105,60 -> 15,60) -->
+                                <path id="textArcTop" d="M 105,60 A 45,45 0 0,0 15,60" fill="none"/>
+                                <!-- Bottom Arc: Right to Left under bottom (105,60 -> 15,60) -->
                                 <path id="textArcBottom" d="M 105,60 A 45,45 0 0,1 15,60" fill="none"/>
                             </defs>
-                            <text font-size="8.5" font-weight="800" fill="#0B2A4A" letter-spacing="0.5">
+                            <text font-size="8.5" font-weight="800" fill="#006C35" letter-spacing="0.5">
                                 <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
                                     ✦ مدارس الثغر النموذجية ✦
                                 </textPath>
                             </text>
-                            <text font-size="8" font-weight="700" fill="#D4AF37" letter-spacing="0.5">
+                            <text font-size="8" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
                                 <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
                                     الإشراف الأكاديمي المعتمد
                                 </textPath>
