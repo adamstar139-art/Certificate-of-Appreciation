@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 ### ==========================================================
-### 2. Load School Logo (embedded as base64 for self-contained export)
+### 2. Load School Logo (embedded as base64)
 ### ==========================================================
 @st.cache_data(show_spinner=False)
 def load_logo_b64():
@@ -35,7 +35,7 @@ LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
 ### ==========================================================
-### 3. Advanced CSS for Streamlit UI (Saudi National Identity Accents)
+### 3. Advanced Clean CSS for Streamlit control panel
 ### ==========================================================
 st.markdown("""
 <style>
@@ -46,12 +46,12 @@ st.markdown("""
         direction: rtl;
     }
     
-    /* Compact Control Panel Container */
+    /* Control Panel Compact Container Styling */
     div[data-testid="column"]:first-child {
         background: #f8fafc;
         padding: 12px 16px;
         border-radius: 12px;
-        border: 1px solid #cbd5e1;
+        border: 1px solid #e2e8f0;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     
@@ -67,41 +67,31 @@ st.markdown("""
         margin-bottom: 8px;
     }
     
-    /* Saudi National Identity Header Ribbon */
-    .saudi-top-bar {
-        height: 6px;
-        background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
-        border-radius: 4px;
-        margin-bottom: 12px;
-    }
-    
-    /* Footer Credit Badge */
     .designer-credit-badge {
         text-align: center;
-        background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+        background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
         color: #ffffff;
         padding: 8px 12px;
         border-radius: 8px;
         font-size: 12.5px;
         font-weight: 700;
         border: 1px solid #D4AF37;
-        box-shadow: 0 2px 6px rgba(0,108,53,0.2);
+        box-shadow: 0 2px 6px rgba(0,108,53,0.15);
         margin-top: 15px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 ### ==========================================================
-### 4. Main Site Header with Saudi National Identity Colors
+### 4. Main Site Header
 ### ==========================================================
-_header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 70px; margin-bottom: 8px;"></div>' if LOGO_SRC else ""
+_header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div class="saudi-top-bar"></div>
-<div style="text-align: center; padding: 5px 0 15px 0; border-bottom: 2px solid #006C35; margin-bottom: 20px;">
+<div style="text-align: center; padding: 10px 0 15px 0; border-bottom: 3px solid #006C35; margin-bottom: 20px;">
     {_header_logo}
-    <h1 style="color: #006C35; font-family: 'Cairo', sans-serif; margin-bottom: 4px; font-size: 25px; font-weight: 800;">📜 نظام إصدار شهادات التقدير والحضور الرقمية</h1>
-    <h3 style="color: #0B2A4A; margin-top: 0; font-size: 17px; font-weight: 700;">مدارس الثغر النموذجية الأهلية</h3>
-    <div style="display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; padding: 4px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid #D4AF37;">
+    <h1 style="color: #006C35; font-family: 'Cairo', sans-serif; margin-bottom: 4px; font-size: 24px; font-weight: 800;">📜 نظام إصدار شهادات التقدير والحضور الرقمية</h1>
+    <h3 style="color: #D4AF37; margin-top: 0; font-size: 16px; font-weight: 700;">مدارس الثغر النموذجية الأهلية</h3>
+    <div style="display: inline-block; background: #006C35; color: #ffffff; padding: 4px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid #D4AF37;">
         ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
 </div>
@@ -141,11 +131,10 @@ if "signatures_list" not in st.session_state:
         {"role": "وكيل شؤون الطلاب", "name": "أ. صالح بن عبدالله الدعجاني"}
     ]
 
-# Optimized Column Layout: Compact control panel (0.75), Wide preview canvas (2.25)
 col_ctrl, col_preview = st.columns([0.75, 2.25])
 
 with col_ctrl:
-    st.markdown("### ⚙️ لوحة التحكم والإعدادات")
+    st.markdown("### ⚙️ لوحة التحكم الإعدادات")
     
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
@@ -305,7 +294,6 @@ body {
     background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%);
 }
 
-/* Faint Watermark Centered */
 .watermark-logo {
     position: absolute;
     top: 50%;
@@ -318,7 +306,6 @@ body {
     z-index: 1;
 }
 
-/* Decorative Gold Corners */
 .corner {
     position: absolute;
     width: 44px;
@@ -366,7 +353,6 @@ body {
     background: rgba(255,255,255,0.88);
 }
 
-/* Header with Saudi National Identity Colors */
 .saudi-nat-header-bar {
     height: 5px;
     background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
@@ -490,13 +476,32 @@ body {
     font-weight: 600;
 }
 
-/* Signatures Section: Dots placed UNDER the name for signature */
+/* Signatures Section: Normal Layout */
 .signatures-section {
     display: flex;
     justify-content: space-around;
     align-items: flex-start;
     margin-top: 12px;
     padding-top: 4px;
+}
+
+/* Single Signature Centered Mode */
+.signatures-section.single-sig-mode {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    padding: 0 120px;
+}
+
+.signatures-section.single-sig-mode .sig-box {
+    margin: 0 auto;
+}
+
+.signatures-section.single-sig-mode .school-seal {
+    position: absolute;
+    left: 20px;
+    top: -5px;
 }
 
 .sig-box {
@@ -522,7 +527,7 @@ body {
 }
 
 .sig-dots-line {
-    color: #0B2A4A;
+    color: #006C35;
     font-weight: 800;
     font-size: 13px;
     letter-spacing: 2.5px;
@@ -530,7 +535,7 @@ body {
     margin-top: 4px;
 }
 
-/* Professional round seal with upright SVG circular text */
+/* Professional round seal */
 .school-seal {
     display: flex;
     flex-direction: column;
@@ -614,6 +619,9 @@ def build_certificate_single_html(teacher_name):
             <div class="sig-dots-line">. . . . . . . . . . . . . . . . . . . . .</div>
         </div>'''
     
+    # Check if single signature chosen
+    sig_section_class = "signatures-section single-sig-mode" if len(chosen_signatures) == 1 else "signatures-section"
+    
     body_text_html = cert_custom_text.replace("\n", "<br>")
     body_html = f'''
     <div class="cert-prefix-text">{cert_custom_prefix}</div>
@@ -659,26 +667,26 @@ def build_certificate_single_html(teacher_name):
                 {body_html}
             </div>
 
-            <div class="signatures-section">
+            <div class="{sig_section_class}">
                 {sigs_html}
                 <div class="school-seal">
                     <div class="seal-ring">
                         {seal_logo_html}
                         <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                             <defs>
-                                <!-- Top Arc: Right to Left over top (105,60 -> 15,60) -->
-                                <path id="textArcTop" d="M 105,60 A 45,45 0 0,0 15,60" fill="none"/>
-                                <!-- Bottom Arc: Right to Left under bottom (105,60 -> 15,60) -->
+                                <!-- Top Arc: L to R (15,60 -> 105,60) over top, text facing UPWARDS -->
+                                <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
+                                <!-- Bottom Arc: R to L (105,60 -> 15,60) under bottom, text RTL upright -->
                                 <path id="textArcBottom" d="M 105,60 A 45,45 0 0,1 15,60" fill="none"/>
                             </defs>
-                            <text font-size="8.5" font-weight="800" fill="#006C35" letter-spacing="0.5">
+                            <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
                                 <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
-                                    ✦ مدارس الثغر النموذجية ✦
+                                    ✦ مدارس الثغر ✦
                                 </textPath>
                             </text>
-                            <text font-size="8" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
+                            <text font-size="8.5" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
                                 <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
-                                    الإشراف الأكاديمي المعتمد
+                                    الإشراف الأكاديمي
                                 </textPath>
                             </text>
                         </svg>
