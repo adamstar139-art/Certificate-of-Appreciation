@@ -66,7 +66,7 @@ st.markdown("""
         margin-top: 15px;
     }
 </style>
-""",unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 ##### ==========================================================
 ##### 5. Main Site Header
@@ -126,6 +126,7 @@ if "signatures_list" not in st.session_state:
     st.session_state["signatures_list"] = [
         {"role": "المدير الأكاديمي لمدارس الثغر", "name": "د. ياسين البدراوي"},
         {"role": "مدير المدرسة", "name": "أ. إبراهيم بن موسى التميمي"},
+        {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
         {"role": "وكيل الشؤون التعليمية", "name": "أ. محمد مبروك السيد"},
         {"role": "وكيل شؤون الطلاب", "name": "أ. صالح بن عبدالله الدعجاني"}
     ]
@@ -227,7 +228,7 @@ with col_ctrl:
 
     st.markdown("#### ✍️ التوقيعات والتوقيع الإلكتروني")
     sig_options_map = {f"{s['role']}: {s['name']}": s for s in st.session_state["signatures_list"]}
-    default_sig_keys = list(sig_options_map.keys())[:2] if len(sig_options_map) >= 2 else list(sig_options_map.keys())
+    default_sig_keys = list(sig_options_map.keys())
     selected_sig_keys = st.multiselect(
         "اختر التوقيعات الظاهرة بالشهادة:",
         options=list(sig_options_map.keys()),
@@ -294,13 +295,13 @@ body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo'
 .teacher-name { font-size: 27px; font-weight: 900; color: #006C35; margin: 4px 0; font-family: 'Amiri', serif; letter-spacing: 0.5px; text-shadow: 1px 1px 0 rgba(212,175,55,0.3); }
 .teacher-name::before, .teacher-name::after { content: " ✦ "; color: #D4AF37; font-size: 16px; vertical-align: middle; }
 .cert-body-text { font-size: 15px; line-height: 1.8; color: #1e293b; font-weight: 600; }
-.signatures-section { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 12px; padding-top: 4px; }
+.signatures-section { display: flex; direction: rtl; flex-direction: row; justify-content: space-between; align-items: flex-start; margin-top: 12px; padding-top: 4px; text-align: center; }
 .signatures-section.single-sig-mode { display: flex; justify-content: center; align-items: flex-start; position: relative; padding: 0 120px; }
 .signatures-section.single-sig-mode .sig-box { margin: 0 auto; }
 .signatures-section.single-sig-mode .school-seal { position: absolute; left: 20px; top: -5px; }
-.sig-box { min-width: 170px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-.sig-role { font-size: 12.5px; font-weight: 800; color: #006C35; margin-bottom: 2px; }
-.sig-name { font-size: 14px; font-weight: 800; color: #0f172a; margin-top: 0px; margin-bottom: 4px; }
+.sig-box { min-width: 140px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; direction: rtl; }
+.sig-role { font-size: 12px; font-weight: 800; color: #006C35; margin-bottom: 2px; }
+.sig-name { font-size: 13.5px; font-weight: 800; color: #0f172a; margin-top: 0px; margin-bottom: 4px; }
 .sig-img-container { height: 40px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
 .digital-signature-img { max-height: 38px; width: auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
 .school-seal { display: flex; flex-direction: column; align-items: center; margin: 0 8px; }
