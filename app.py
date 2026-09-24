@@ -2,7 +2,6 @@ import streamlit as st
 import datetime
 import base64
 import os
-import subprocess
 
 ##### ==========================================================
 ##### 1. Page Configuration
@@ -51,8 +50,23 @@ LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 ##### ==========================================================
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+    html, body, [class*="css"] {
+        font-family: 'Cairo', sans-serif;
+    }
+    .designer-credit-badge {
+        background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+        color: #D4AF37;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        border: 1px solid #D4AF37;
+        margin-top: 15px;
+    }
 </style>
-""", unsafe_allow_html=True)
+""",unsafe_allow_html=True)
 
 ##### ==========================================================
 ##### 5. Main Site Header
@@ -156,7 +170,7 @@ with col_ctrl:
         if select_all_teachers:
             default_teachers = teachers_names_list
         else:
-            default_teachers = [teachers_names_list] if teachers_names_list else []
+            default_teachers = [teachers_names_list[0]] if teachers_names_list else []
 
         selected_teachers = st.multiselect(
             f"اختر معلمي ({selected_dept}):",
@@ -213,10 +227,7 @@ with col_ctrl:
 
     st.markdown("#### ✍️ التوقيعات والتوقيع الإلكتروني")
     sig_options_map = {f"{s['role']}: {s['name']}": s for s in st.session_state["signatures_list"]}
-    default_sig_keys = [
-        f"{st.session_state['signatures_list']['role']}: {st.session_state['signatures_list']['name']}",
-        f"{st.session_state['signatures_list'][1]['role']}: {st.session_state['signatures_list'][1]['name']}"
-    ]
+    default_sig_keys = list(sig_options_map.keys())[:2] if len(sig_options_map) >= 2 else list(sig_options_map.keys())
     selected_sig_keys = st.multiselect(
         "اختر التوقيعات الظاهرة بالشهادة:",
         options=list(sig_options_map.keys()),
