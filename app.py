@@ -139,19 +139,10 @@ if "dept_teachers_dict" not in st.session_state:
     st.session_state["dept_teachers_dict"] = {
         "القسم المتوسط بنين": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
         "القسم المتوسط بنات": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم الابتدائي بنين": {
-            "أ/ محمد سامي السعيد": "m.saeed@thaghr.edu.sa",
-            "أ/ معلم جديد (القسم الابتدائي)": "primary.b@thaghr.edu.sa"
-        },
-        "القسم الابتدائي بنات": {
-            "أ/ معلمة جديدة (القسم الابتدائي)": "primary.g@thaghr.edu.sa"
-        },
-        "القسم الثانوي بنين": {
-            "أ/ معلم جديد (القسم الثانوي)": "secondary.b@thaghr.edu.sa"
-        },
-        "القسم الثانوي بنات": {
-            "أ/ معلمة جديدة (القسم الثانوي)": "secondary.g@thaghr.edu.sa"
-        }
+        "القسم الابتدائي بنين": {},
+        "القسم الابتدائي بنات": {},
+        "القسم الثانوي بنين": {},
+        "القسم الثانوي بنات": {}
     }
 
 if "courses_list" not in st.session_state:
@@ -201,20 +192,24 @@ with col_ctrl:
 
     st.markdown("#### 👤 المعلمون المكرمون والبريد الإلكتروني")
 
-    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, INTERMEDIATE_TEACHERS_FROM_SOURCE)
+    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, {})
     teachers_names_list = list(current_dept_teachers.keys())
 
-    select_all_teachers = st.checkbox("✅ تحديد جميع معلمي القسم المحدد")
-    if select_all_teachers:
-        default_teachers = teachers_names_list
+    if not teachers_names_list:
+        st.info(f"ℹ️ لا يوجد معلمون مضافون في ({selected_dept}) حالياً. يمكنك إضافة أسماء المعلمين فوراً من النموذج أدناه.")
+        selected_teachers = []
     else:
-        default_teachers = [teachers_names_list[0]] if teachers_names_list else []
+        select_all_teachers = st.checkbox("✅ تحديد جميع معلمي القسم المحدد", value=True)
+        if select_all_teachers:
+            default_teachers = teachers_names_list
+        else:
+            default_teachers = [teachers_names_list[0]] if teachers_names_list else []
 
-    selected_teachers = st.multiselect(
-        f"اختر معلمي ({selected_dept}):",
-        options=teachers_names_list,
-        default=default_teachers
-    )
+        selected_teachers = st.multiselect(
+            f"اختر معلمي ({selected_dept}):",
+            options=teachers_names_list,
+            default=default_teachers
+        )
 
     with st.expander("📧 ➕ إضافة معلم جديد لهذا القسم"):
         new_teacher_input = st.text_input("اسم المعلم الجديد:", placeholder="أ/ اكتب الاسم رباعياً...", key="input_new_teacher")
@@ -290,26 +285,14 @@ with col_ctrl:
 
     with st.expander("➕ إضافة توقيع مسؤول جديد"):
         new_sig_role = st.text_input("المسمى الوظيفي:", placeholder="مثال: رئيس قسم الإشراف الأكاديمي", key="input_sig_role")
-        new_sig_name = st.text_input("اسم صاحب التوقيع:", placeholder="مثال: د. محمد العتيبي", key="input_sig_name")
+        new_sig_name = st.text_input("اسم صاحب التوقيع:", placeholder="مثال: د. ياسين البدراوي ", key="input_sig_name")
         if st.button("💾 حفظ التوقيع", key="btn_add_sig"):
             if new_sig_role.strip() and new_sig_name.strip():
                 st.session_state["signatures_list"].append({"role": new_sig_role.strip(), "name": new_sig_name.strip()})
                 st.success("✅ تم إضافة التوقيع بنجاح!")
                 st.rerun()
 
-    st.markdown("---")
-
-    # --- SMTP Credentials Settings Section ---
-    with st.expander("⚙️ إعدادات خادم البريد الإلكتروني المُرسِل (SMTP)"):
-        st.markdown("💡 **لإرسال الرسائل فعلياً لحسابات البريد الإلكتروني (مثل Gmail/Outlook):**")
-        st.info("قم بإدخال عنوان بريد المُرسِل وكلمة مرور التطبيق (App Password) المعتمدة من خادم البريد.")
-        smtp_server_input = st.text_input("خادم SMTP:", value="smtp.gmail.com", key="input_smtp_server")
-        smtp_port_input = st.number_input("منفذ SMTP Port:", value=587, key="input_smtp_port")
-        sender_email_input = st.text_input("بريد المُرسِل الرسمي (Sender Email):", value="thaghr.certificates@gmail.com", key="input_sender_email")
-        sender_password_input = st.text_input("كلمة مرور التطبيق (App Password):", type="password", placeholder="أدخل كلمة مرور التطبيقات المكونة من 16 حرفاً...", key="input_sender_password")
-        use_tls_checkbox = st.checkbox("تفعيل التشفير الآمن TLS", value=True, key="chk_use_tls")
-
-    st.markdown("""
+        st.markdown("""
     <div class="designer-credit-badge">
         ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
@@ -863,133 +846,5 @@ def send_smtp_email(server_host, server_port, sender_email, sender_pass, use_tls
     server.quit()
     return True
 
-### ==========================================================
-### 10. Live Preview, Batch Export UI & Real SMTP Email Dispatch
-### ==========================================================
-with col_preview:
-    st.markdown("### 🖼️ المعاينة الحية والتصدير وإرسال البريد الإلكتروني")
-    if not selected_teachers:
-        st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
-    else:
-        st.markdown(f"**عدد المعلمين المحدد لاصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**")
 
-        preview_tabs = st.tabs([f"📜 شهادة: {t}" for t in selected_teachers[:6]])
-        for idx, tab_teacher in enumerate(selected_teachers[:6]):
-            with preview_tabs[idx]:
-                single_cert_html = build_full_certificates_document_html([tab_teacher])
-                st.components.v1.html(single_cert_html, height=710, scrolling=True)
-
-        if len(selected_teachers) > 6:
-            st.caption(f"ℹ️ يتم عرض المعاينة لأول 6 معلمين فقط، وسيتم تضمين باقي المعلمين ({len(selected_teachers)}) في الملف المطبوع المجمع.")
-
-        st.markdown("---")
-
-        # --- SMTP Real Email Dispatch UI ---
-        st.markdown("#### 📧 إرسال الشهادات المعتمدة (PDF) عبر البريد الإلكتروني المباشر")
-        
-        select_all_emails = st.checkbox(
-            f"✅ تحديد جميع المعلمين المحددين ({len(selected_teachers)} معلم) لإرسال الشهادات لهم دفعة واحدة",
-            value=True,
-            key="chk_select_all_emails"
-        )
-        
-        dept_email_map = st.session_state["dept_teachers_dict"].get(selected_dept, {})
-
-        if select_all_emails:
-            st.info(f"📧 سيتم توليد وإرسال شهادات PDF لجميع المعلمين المحددين ({len(selected_teachers)} معلم) إلى عناوين بريدهم الإلكتروني المسجلة.")
-            
-            if st.button("✉️ إرسال الشهادات الفعلي (PDF) لجميع المعلمين المحددين دفعة واحدة", type="primary", use_container_width=True, key="btn_send_batch_email"):
-                if not sender_password_input.strip():
-                    st.warning("⚠️ **تنبيه:** لم تقم بإدخال كلمة مرور التطبيق (App Password) في إعدادات خادم SMTP الجانبية.\n\nسيتم إجراء **محاكاة للإرسال** الآن. لإرسال بريد إلكتروني حقيقي يصل لصندوق الوارد، أدخل كلمة مرور التطبيقات في قسم (⚙️ إعدادات خادم البريد).")
-                    dispatch_details = []
-                    for t in selected_teachers:
-                        t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
-                        doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
-                        dispatch_details.append(f"• **{t}** ➔ `{t_email}` (الوثيقة: `{doc_id}`)")
-                    msg_body = "\n".join(dispatch_details)
-                    st.success(f"🎉 **تمت عملية معالجة الشهادات وإصدار إشعارات الإرسال ({len(selected_teachers)} معلم):**\n\n{msg_body}")
-                    st.balloons()
-                else:
-                    with st.spinner("⏳ جاري الاتصال بخادم البريد وتوليد شهادات PDF لكل معلم وإرسالها..."):
-                        success_count = 0
-                        err_logs = []
-                        for t in selected_teachers:
-                            t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
-                            doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
-                            single_html = build_full_certificates_document_html([t])
-                            pdf_data = convert_html_to_pdf_bytes(single_html)
-                            
-                            try:
-                                send_smtp_email(
-                                    smtp_server_input,
-                                    smtp_port_input,
-                                    sender_email_input,
-                                    sender_password_input,
-                                    use_tls_checkbox,
-                                    t_email,
-                                    t,
-                                    cert_main_title,
-                                    doc_id,
-                                    pdf_data
-                                )
-                                success_count += 1
-                            except Exception as e:
-                                err_logs.append(f"• {t} (`{t_email}`): {str(e)}")
-                        
-                        if success_count > 0:
-                            st.success(f"🎉 **تم إرسال {success_count} شهادة (PDF) بنجاح عبر خادم البريد الإلكتروني!**")
-                            st.balloons()
-                        if err_logs:
-                            st.error(f"❌ تعذر إرسال البريد لبعض المعلمين:\n" + "\n".join(err_logs))
-
-        else:
-            col_em1, col_em2 = st.columns([1.2, 1])
-            with col_em1:
-                target_teacher_for_email = st.selectbox(
-                    "اختر المعلم المراد إرسال شهادته إليها:",
-                    options=selected_teachers,
-                    key="select_email_teacher"
-                )
-                default_email_for_teacher = dept_email_map.get(target_teacher_for_email, f"{target_teacher_for_email.replace(' ', '_')}@thaghr.edu.sa")
-                recipient_email_input = st.text_input("✉️ تأكيد البريد الإلكتروني للارسال:", value=default_email_for_teacher, key="input_target_email")
-            
-            with col_em2:
-                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("✉️ إرسال الشهادة الفعلي (PDF) للمعلم المخصص", use_container_width=True, type="primary", key="btn_send_single_email"):
-                    doc_id = f"TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000}"
-                    
-                    if not sender_password_input.strip():
-                        st.warning("⚠️ **تنبيه:** يرجى إدخال كلمة مرور التطبيق (App Password) في قسم (⚙️ إعدادات خادم البريد) في لوحة التحكم لإتمام الإرسال الفعلي عبر خادم SMTP.")
-                        st.info(f"إشعارات المحاكاة: المعلم **{target_teacher_for_email}** ➔ `{recipient_email_input}` (الوثيقة: `{doc_id}`)")
-                    else:
-                        with st.spinner(f"⏳ جاري توليد شهادة PDF وتجهيز البريد للمعلم ({target_teacher_for_email})..."):
-                            single_html = build_full_certificates_document_html([target_teacher_for_email])
-                            pdf_data = convert_html_to_pdf_bytes(single_html)
-                            try:
-                                send_smtp_email(
-                                    smtp_server_input,
-                                    smtp_port_input,
-                                    sender_email_input,
-                                    sender_password_input,
-                                    use_tls_checkbox,
-                                    recipient_email_input,
-                                    target_teacher_for_email,
-                                    cert_main_title,
-                                    doc_id,
-                                    pdf_data
-                                )
-                                st.success(f"✅ **تم إرسال الشهادة (PDF) بنجاح إلى البريد الإلكتروني:**\n`{recipient_email_input}`\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: `{doc_id}`)")
-                                st.balloons()
-                            except Exception as e:
-                                st.error(f"❌ حدث خطأ أثناء الاتصال بخادم البريد SMTP:\n`{str(e)}`\n\nتأكد من صحة كلمة مرور التطبيق ومنفذ الخادم (587) وتفعيل خيار التشفير TLS.")
-
-        st.markdown("---")
-        full_batch_html = build_full_certificates_document_html(selected_teachers)
-        st.download_button(
-            label=f"🖨️ تصدير وطباعة شهادات جميع المعلمين المحددين ({len(selected_teachers)} معلم) (HTML / PDF)",
-            data=full_batch_html,
-            file_name=f"Thaghr_Certificates_Batch_({len(selected_teachers)}_teachers).html",
-            mime="text/html",
-            use_container_width=True
-        )
         st.info("💡 **تلميح الطباعة والتصدير:** عند فتح الملف المنزّل، اضغط (Ctrl + P) واختر اتجاه الطباعة **أفقي (Landscape)** لتطبع شهادة كل معلم في صفحة مستقلة A4 بدقة احترافية عالية. وتأكد من تفعيل خيار (الرسومات الخلفية / Background graphics) لإظهار الألوان والشعار.")
