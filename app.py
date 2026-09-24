@@ -3,6 +3,7 @@ import datetime
 import base64
 import os
 import subprocess
+import tempfile
 
 ##### ==========================================================
 ##### 1. Page Configuration
@@ -100,12 +101,13 @@ st.markdown("""
         font-weight: 800 !important;
         border: 1px solid #D4AF37 !important;
         border-radius: 8px !important;
-        padding: 10px 20px !important;
-        direction: rtl !important;
+        padding: 10px 16px !important;
     }
-    .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #0B2A4A 0%, #006C35 100%) !important;
-        color: #D4AF37 !important;
+
+    /* Adjust Columns RTL spacing */
+    [data-testid="column"] {
+        direction: rtl !important;
+        text-align: right !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -126,7 +128,7 @@ if not LOGO_SRC:
     st.warning("⚠️ لم يتم العثور على ملف الشعار (thaghr_logo.png). ضعه بجانب ملف app.py لإظهار الشعار في الشهادة.")
 
 ##### ==========================================================
-##### 6. Initialize Session State with Teachers & Signatures
+##### 6. Initialize Session State with Teachers
 ##### ==========================================================
 INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ محمد سامي السعيد",
@@ -312,7 +314,7 @@ with col_ctrl:
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
 @page { size: A4 landscape; margin: 0; }
-body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', 'Noto Naskh Arabic', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
+body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
 .page-break { page-break-after: always; break-after: page; margin-bottom: 30px; }
 .certificate-container { width: 980px; height: 650px; margin: 0 auto; background: #ffffff; padding: 20px; box-sizing: border-box; position: relative; border: 14px solid #006C35; outline: 4px solid #D4AF37; outline-offset: -9px; border-radius: 14px; box-shadow: 0 14px 38px rgba(0,0,0,0.14); overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); direction: rtl; }
 .watermark-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: auto; opacity: 0.055; pointer-events: none; z-index: 1; }
@@ -332,7 +334,7 @@ body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo'
 .thaghr-logo-img { height: 70px; width: auto; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
 .dept-sub-badge { display: inline-block; font-size: 11px; color: #ffffff; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); padding: 2px 14px; border-radius: 12px; font-weight: 700; border: 1px solid #D4AF37; }
 .cert-title-badge { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; font-size: 21px; font-weight: 900; padding: 5px 40px; border-radius: 28px; border: 2px solid #D4AF37; box-shadow: 0 4px 14px rgba(0,108,53,0.25); margin: 2px 0 10px; letter-spacing: 0.5px; }
-.cert-body-box { margin-bottom: 8px; padding: 0 16px; direction: rtl; }
+.cert-body-box { margin-bottom: 8px; padding: 0 16px; }
 .cert-prefix-text { font-size: 14.5px; font-weight: 700; color: #334155; }
 .teacher-name { font-size: 27px; font-weight: 900; color: #006C35; margin: 4px 0; font-family: 'Amiri', serif; letter-spacing: 0.5px; text-shadow: 1px 1px 0 rgba(212,175,55,0.3); }
 .teacher-name::before, .teacher-name::after { content: " ✦ "; color: #D4AF37; font-size: 16px; vertical-align: middle; }
@@ -466,18 +468,17 @@ def build_full_certificates_document_html(teachers_list):
     return full_html
 
 ##### ==========================================================
-##### 10. PDF File Generator Helper Function
+##### 10. PDF File Generator Helper Function (Safe Temp Directory)
 ##### ==========================================================
 def generate_pdf_bytes(html_content):
-    temp_dir = "/workspace/scratch"
-    os.makedirs(temp_dir, exist_ok=True)
-    temp_html = os.path.join(temp_dir, "temp_certs.html")
-    temp_pdf = os.path.join(temp_dir, "temp_certs.pdf")
-
-    with open(temp_html, "w", encoding="utf-8") as f:
-        f.write(html_content)
-
     try:
+        temp_dir = tempfile.gettempdir()
+        temp_html = os.path.join(temp_dir, f"temp_certs_{os.getpid()}.html")
+        temp_pdf = os.path.join(temp_dir, f"temp_certs_{os.getpid()}.pdf")
+
+        with open(temp_html, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
         cmd = [
             "wkhtmltopdf",
             "--quiet",
@@ -488,10 +489,16 @@ def generate_pdf_bytes(html_content):
             temp_html,
             temp_pdf
         ]
-        subprocess.run(cmd, check=True)
-        if os.path.exists(temp_pdf):
+        res = subprocess.run(cmd, capture_output=True)
+        if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
             with open(temp_pdf, "rb") as f:
-                return f.read()
+                pdf_data = f.read()
+            try:
+                os.remove(temp_html)
+                os.remove(temp_pdf)
+            except Exception:
+                pass
+            return pdf_data
     except Exception:
         pass
     return None
@@ -533,7 +540,7 @@ with col_preview:
                     use_container_width=True
                 )
             else:
-                st.info("ℹ️ يمكنك حفظ الشهادات بصيغة PDF فورياً عبر خيار الطباعة المباشرة أدناه.")
+                st.info("ℹ️ خيار التنزيل المباشر كـ PDF يعمل عند تثبيت أداة wkhtmltopdf، ويمكنك استخدام خيار الطباعة المباشرة أدناه للتنزيل كـ PDF فوراً.")
 
         with col_html:
             st.markdown("#### 🖨️ تصدير وطباعة التنسيق الكامل (HTML/PDF)")
@@ -545,4 +552,4 @@ with col_preview:
                 use_container_width=True
             )
 
-        st.info("💡 **تلميح للتحميل والتصدير:** يمكنك النقر على زر **`📥 📄 تحميل كـ ملف PDF مباشر`** للحصول على ملف PDF جاهز فوراً، أو استخدام زر العرض المجمع للطباعة مباشرة من المتصفح عبر (Ctrl + P) واختيار **أفقي (Landscape)** ورسومات الخلفية.")
+        st.info("💡 **تلميح للتحميل والتصدير:** يمكنك النقر على زر **`📥 📄 تحميل كـ ملف PDF مباشر`**، أو استخدام زر العرض المجمع للطباعة مباشرة من المتصفح عبر (Ctrl + P) واختيار **أفقي (Landscape)** ورسومات الخلفية.")
