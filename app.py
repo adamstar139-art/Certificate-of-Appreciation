@@ -3,14 +3,10 @@ import datetime
 import base64
 import os
 import subprocess
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 
-### ==========================================================
-### 1. Page Configuration
-### ==========================================================
+##### ==========================================================
+##### 1. Page Configuration
+##### ==========================================================
 st.set_page_config(
     page_title="نظام إدارة وإصدار شهادات الإشراف الأكاديمي - مدارس الثغر النموذجية الأهلية",
     page_icon="📜",
@@ -18,9 +14,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-### ==========================================================
-### 2. Sample Digital Signature SVG (Base64)
-### ==========================================================
+##### ==========================================================
+##### 2. Sample Digital Signature SVG (Base64)
+##### ==========================================================
 SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
   <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
@@ -29,9 +25,9 @@ SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 </svg>
 '''.strip().encode('utf-8')).decode('utf-8')
 
-### ==========================================================
-### 3. Load School Logo (embedded as base64)
-### ==========================================================
+##### ==========================================================
+##### 3. Load School Logo (embedded as base64)
+##### ==========================================================
 @st.cache_data(show_spinner=False)
 def load_logo_b64():
     candidates = [
@@ -50,99 +46,57 @@ def load_logo_b64():
 LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
-### ==========================================================
-### 4. Advanced CSS for Streamlit UI
-### ==========================================================
+##### ==========================================================
+##### 4. Advanced CSS for Streamlit UI
+##### ==========================================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Cairo', sans-serif;
-        direction: rtl;
-    }
-    
-    div[data-testid="column"]:first-child {
-        background: #f8fafc;
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    
-    div[data-testid="column"]:first-child .stMarkdown {
-        margin-bottom: -6px;
-    }
-    
-    div[data-testid="column"]:first-child .stSelectbox, 
-    div[data-testid="column"]:first-child .stTextInput,
-    div[data-testid="column"]:first-child .stMultiSelect,
-    div[data-testid="column"]:first-child .stNumberInput,
-    div[data-testid="column"]:first-child .stDateInput {
-        margin-bottom: 8px;
-    }
-    
-    .designer-credit-badge {
-        text-align: center;
-        background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
-        color: #ffffff;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12.5px;
-        font-weight: 700;
-        border: 1px solid #D4AF37;
-        box-shadow: 0 2px 6px rgba(0,108,53,0.15);
-        margin-top: 15px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
-### ==========================================================
-### 5. Main Site Header
-### ==========================================================
+##### ==========================================================
+##### 5. Main Site Header
+##### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div style="text-align: center; padding: 10px 0 15px 0; border-bottom: 3px solid #006C35; margin-bottom: 20px;">
+<div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: white; border-radius: 10px; margin-bottom: 20px;">
     {_header_logo}
-    <h1 style="color: #006C35; font-family: 'Cairo', sans-serif; margin-bottom: 4px; font-size: 24px; font-weight: 800;">📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي الرقمية</h1>
-    <h3 style="color: #D4AF37; margin-top: 0; font-size: 16px; font-weight: 700;">مدارس الثغر النموذجية الأهلية</h3>
-    <div style="display: inline-block; background: #006C35; color: #ffffff; padding: 4px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid #D4AF37;">
-        ✨ تصميم وتطوير: أ. محمد سامي السعيد
-    </div>
+    <h1 style="margin:0; font-size: 26px;">📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي</h1>
+    <h3 style="margin:5px 0 0 0; font-size: 16px; color: #D4AF37;">مدارس الثغر النموذجية الأهلية</h3>
 </div>
 """, unsafe_allow_html=True)
 
 if not LOGO_SRC:
     st.warning("⚠️ لم يتم العثور على ملف الشعار (thaghr_logo.png). ضعه بجانب ملف app.py لإظهار الشعار في الشهادة.")
 
-### ==========================================================
-### 6. Initialize Session State with Teachers from Source
-### ==========================================================
-INTERMEDIATE_TEACHERS_FROM_SOURCE = {
-    "أ/ محمد سامي السعيد": "m.saeed@thaghr.edu.sa",
-    "أ/ علي محمد معوض": "a.moawad@thaghr.edu.sa",
-    "أ/ أحمد عبد الحميد سعيد": "a.saeed@thaghr.edu.sa",
-    "أ/ محمد عبد المنعم أبو كيلة": "m.abukeila@thaghr.edu.sa",
-    "أ/ هيثم رضا عطية": "h.attya@thaghr.edu.sa",
-    "أ/ عماد الدين نصر كرم": "e.karam@thaghr.edu.sa",
-    "أ/ السيد الغريب بدوي": "s.badawi@thaghr.edu.sa",
-    "أ/ محمد إبراهيم عبد الرحمن": "m.abdulrahman@thaghr.edu.sa",
-    "أ/ أسامة أحمد سالم": "o.salem@thaghr.edu.sa",
-    "أ/ عماد بكر عارف": "e.arif@thaghr.edu.sa",
-    "أ/ إبراهيم علي العتيبي": "i.alotaibi@thaghr.edu.sa",
-    "أ/ عيسى خالد العويس": "e.alowais@thaghr.edu.sa",
-    "أ/ زيد بن علي التميمي": "z.altamimi@thaghr.edu.sa",
-    "أ/ أحمد سلامة": "a.salama@thaghr.edu.sa"
-}
+##### ==========================================================
+##### 6. Initialize Session State with Teachers
+##### ==========================================================
+INTERMEDIATE_TEACHERS_FROM_SOURCE = [
+    "أ/ محمد سامي السعيد",
+    "أ/ علي محمد معوض",
+    "أ/ أحمد عبد الحميد سعيد",
+    "أ/ محمد عبد المنعم أبو كيلة",
+    "أ/ هيثم رضا عطية",
+    "أ/ عماد الدين نصر كرم",
+    "أ/ السيد الغريب بدوي",
+    "أ/ محمد إبراهيم عبد الرحمن",
+    "أ/ أسامة أحمد سالم",
+    "أ/ عماد بكر عارف",
+    "أ/ إبراهيم علي العتيبي",
+    "أ/ عيسى خالد العويس",
+    "أ/ زيد بن علي التميمي",
+    "أ/ أحمد سلامة"
+]
 
 if "dept_teachers_dict" not in st.session_state:
     st.session_state["dept_teachers_dict"] = {
-        "القسم المتوسط بنين": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم المتوسط بنات": dict(INTERMEDIATE_TEACHERS_FROM_SOURCE),
-        "القسم الابتدائي بنين": {},
-        "القسم الابتدائي بنات": {},
-        "القسم الثانوي بنين": {},
-        "القسم الثانوي بنات": {}
+        "القسم المتوسط بنين": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
+        "القسم المتوسط بنات": ["معلم جديد"],
+        "القسم الابتدائي بنين": ["معلم جديد"],
+        "القسم الابتدائي بنات": ["معلم جديد"],
+        "القسم الثانوي بنين": ["معلم جديد"],
+        "القسم الثانوي بنات": ["معلم جديد"]
     }
 
 if "courses_list" not in st.session_state:
@@ -166,7 +120,7 @@ col_ctrl, col_preview = st.columns([0.75, 2.25])
 
 with col_ctrl:
     st.markdown("### ⚙️ لوحة التحكم والإعدادات")
-    
+
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
         ["🎓 شهادة حضور دورة تدريبية", "🎖️ شهادة شكر وتقدير للمعلم"],
@@ -190,10 +144,9 @@ with col_ctrl:
 
     st.markdown("---")
 
-    st.markdown("#### 👤 المعلمون المكرمون والبريد الإلكتروني")
+    st.markdown("#### 👤 المعلمون المكرمون")
 
-    current_dept_teachers = st.session_state["dept_teachers_dict"].get(selected_dept, {})
-    teachers_names_list = list(current_dept_teachers.keys())
+    teachers_names_list = st.session_state["dept_teachers_dict"].get(selected_dept, [])
 
     if not teachers_names_list:
         st.info(f"ℹ️ لا يوجد معلمون مضافون في ({selected_dept}) حالياً. يمكنك إضافة أسماء المعلمين فوراً من النموذج أدناه.")
@@ -203,7 +156,7 @@ with col_ctrl:
         if select_all_teachers:
             default_teachers = teachers_names_list
         else:
-            default_teachers = [teachers_names_list[0]] if teachers_names_list else []
+            default_teachers = [teachers_names_list] if teachers_names_list else []
 
         selected_teachers = st.multiselect(
             f"اختر معلمي ({selected_dept}):",
@@ -211,15 +164,14 @@ with col_ctrl:
             default=default_teachers
         )
 
-    with st.expander("📧 ➕ إضافة معلم جديد لهذا القسم"):
+    with st.expander("➕ إضافة معلم جديد لهذا القسم"):
         new_teacher_input = st.text_input("اسم المعلم الجديد:", placeholder="أ/ اكتب الاسم رباعياً...", key="input_new_teacher")
-        new_teacher_email = st.text_input("✉️ البريد الإلكتروني للمعلم:", placeholder="example@thaghr.edu.sa", key="input_new_email")
         if st.button("💾 حفظ وإضافة القائمة", key="btn_add_teacher"):
             if new_teacher_input.strip():
-                email_val = new_teacher_email.strip() if new_teacher_email.strip() else f"{new_teacher_input.strip().replace(' ', '_')}@thaghr.edu.sa"
-                st.session_state["dept_teachers_dict"][selected_dept][new_teacher_input.strip()] = email_val
-                st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()} ({email_val})")
-                st.rerun()
+                if new_teacher_input.strip() not in st.session_state["dept_teachers_dict"][selected_dept]:
+                    st.session_state["dept_teachers_dict"][selected_dept].append(new_teacher_input.strip())
+                    st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()}")
+                    st.rerun()
 
     st.markdown("---")
 
@@ -262,7 +214,7 @@ with col_ctrl:
     st.markdown("#### ✍️ التوقيعات والتوقيع الإلكتروني")
     sig_options_map = {f"{s['role']}: {s['name']}": s for s in st.session_state["signatures_list"]}
     default_sig_keys = [
-        f"{st.session_state['signatures_list'][0]['role']}: {st.session_state['signatures_list'][0]['name']}",
+        f"{st.session_state['signatures_list']['role']}: {st.session_state['signatures_list']['name']}",
         f"{st.session_state['signatures_list'][1]['role']}: {st.session_state['signatures_list'][1]['name']}"
     ]
     selected_sig_keys = st.multiselect(
@@ -294,410 +246,87 @@ with col_ctrl:
 
     st.markdown("---")
 
-    # --- SMTP Credentials Settings Section ---
-    with st.expander("⚙️ إعدادات خادم البريد الإلكتروني المُرسِل (SMTP)"):
-        st.markdown("💡 **لإرسال الرسائل فعلياً لحسابات البريد الإلكتروني (مثل Gmail/Outlook):**")
-        st.info("قم بإدخال عنوان بريد المُرسِل وكلمة مرور التطبيق (App Password) المعتمدة من خادم البريد.")
-        smtp_server_input = st.text_input("خادم SMTP:", value="smtp.gmail.com", key="input_smtp_server")
-        smtp_port_input = st.number_input("منفذ SMTP Port:", value=587, key="input_smtp_port")
-        sender_email_input = st.text_input("بريد المُرسِل الرسمي (Sender Email):", value="thaghr.certificates@gmail.com", key="input_sender_email")
-        sender_password_input = st.text_input("كلمة مرور التطبيق (App Password):", type="password", placeholder="أدخل كلمة مرور التطبيقات المكونة من 16 حرفاً...", key="input_sender_password")
-        use_tls_checkbox = st.checkbox("تفعيل التشفير الآمن TLS", value=True, key="chk_use_tls")
-
     st.markdown("""
     <div class="designer-credit-badge">
         ✨ تصميم وتطوير: أ. محمد سامي السعيد
     </div>
     """, unsafe_allow_html=True)
 
-### ==========================================================
-### 7. Certificate Print/Export CSS (Saudi National Identity Theme)
-### ==========================================================
+##### ==========================================================
+##### 7. Certificate Print/Export CSS (Saudi National Identity Theme)
+##### ==========================================================
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
-
-@page {
-    size: A4 landscape;
-    margin: 0;
-}
-
-body {
-    margin: 0;
-    padding: 15px;
-    background-color: #eef2f7;
-    font-family: 'Cairo', sans-serif;
-    direction: rtl;
-    text-align: center;
-    color: #0f172a;
-}
-
-.page-break {
-    page-break-after: always;
-    break-after: page;
-    margin-bottom: 30px;
-}
-
-.certificate-container {
-    width: 980px;
-    height: 650px;
-    margin: 0 auto;
-    background: #ffffff;
-    padding: 20px;
-    box-sizing: border-box;
-    position: relative;
-    border: 14px solid #006C35;
-    outline: 4px solid #D4AF37;
-    outline-offset: -9px;
-    border-radius: 14px;
-    box-shadow: 0 14px 38px rgba(0,0,0,0.14);
-    overflow: hidden;
-    background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%);
-}
-
-.watermark-logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 440px;
-    height: auto;
-    opacity: 0.055;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.corner {
-    position: absolute;
-    width: 44px;
-    height: 44px;
-    z-index: 3;
-    border-color: #D4AF37;
-}
-.corner-tr {
-    top: 16px;
-    right: 16px;
-    border-top: 3px solid #D4AF37;
-    border-right: 3px solid #D4AF37;
-    border-radius: 0 8px 0 0;
-}
-.corner-tl {
-    top: 16px;
-    left: 16px;
-    border-top: 3px solid #D4AF37;
-    border-left: 3px solid #D4AF37;
-    border-radius: 8px 0 0 0;
-}
-.corner-br {
-    bottom: 16px;
-    right: 16px;
-    border-bottom: 3px solid #D4AF37;
-    border-right: 3px solid #D4AF37;
-    border-radius: 0 0 8px 0;
-}
-.corner-bl {
-    bottom: 16px;
-    left: 16px;
-    border-bottom: 3px solid #D4AF37;
-    border-left: 3px solid #D4AF37;
-    border-radius: 0 0 0 8px;
-}
-
-.inner-border {
-    border: 2px solid #D4AF37;
-    height: 100%;
-    padding: 12px 26px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    position: relative;
-    z-index: 2;
-    background: rgba(255,255,255,0.88);
-}
-
-.saudi-nat-header-bar {
-    height: 5px;
-    background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
-    border-radius: 3px;
-    margin-bottom: 8px;
-}
-
-.cert-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #006C35;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-}
-
-.header-side {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1.5;
-    text-align: right;
-    flex: 1.1;
-}
-
-.header-side.left-side {
-    text-align: left;
-    direction: ltr;
-}
-
-.saudi-title {
-    color: #006C35;
-    font-weight: 900;
-    font-size: 12.5px;
-}
-
-.office-highlight {
-    display: inline-block;
-    background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
-    color: #ffffff;
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-weight: 800;
-    border: 1px solid #D4AF37;
-    font-size: 11px;
-    margin-top: 2px;
-}
-
-.logo-box-center {
-    flex: 1.2;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.thaghr-logo-img {
-    height: 70px;
-    width: auto;
-    margin-bottom: 4px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
-}
-
-.dept-sub-badge {
-    display: inline-block;
-    font-size: 11px;
-    color: #ffffff;
-    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
-    padding: 2px 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    border: 1px solid #D4AF37;
-}
-
-.cert-title-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
-    color: #ffffff;
-    font-size: 21px;
-    font-weight: 900;
-    padding: 5px 40px;
-    border-radius: 28px;
-    border: 2px solid #D4AF37;
-    box-shadow: 0 4px 14px rgba(0,108,53,0.25);
-    margin: 2px 0 10px;
-    letter-spacing: 0.5px;
-}
-
-.cert-body-box {
-    margin-bottom: 8px;
-    padding: 0 16px;
-}
-
-.cert-prefix-text {
-    font-size: 14.5px;
-    font-weight: 700;
-    color: #334155;
-}
-
-.teacher-name {
-    font-size: 27px;
-    font-weight: 900;
-    color: #006C35;
-    margin: 4px 0;
-    font-family: 'Amiri', serif;
-    letter-spacing: 0.5px;
-    text-shadow: 1px 1px 0 rgba(212,175,55,0.3);
-}
-
-.teacher-name::before, .teacher-name::after {
-    content: " ✦ ";
-    color: #D4AF37;
-    font-size: 16px;
-    vertical-align: middle;
-}
-
-.cert-body-text {
-    font-size: 15px;
-    line-height: 1.8;
-    color: #1e293b;
-    font-weight: 600;
-}
-
-/* Signatures Section: Signature image placed BELOW name, no dots, tight vertical gap */
-.signatures-section {
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-start;
-    margin-top: 12px;
-    padding-top: 4px;
-}
-
-.signatures-section.single-sig-mode {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    position: relative;
-    padding: 0 120px;
-}
-
-.signatures-section.single-sig-mode .sig-box {
-    margin: 0 auto;
-}
-
-.signatures-section.single-sig-mode .school-seal {
-    position: absolute;
-    left: 20px;
-    top: -5px;
-}
-
-.sig-box {
-    min-width: 170px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.sig-role {
-    font-size: 12.5px;
-    font-weight: 800;
-    color: #006C35;
-    margin-bottom: 2px;
-}
-
-.sig-name {
-    font-size: 14px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-top: 0px;
-    margin-bottom: 4px;
-}
-
-.sig-img-container {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 2px;
-}
-
-.digital-signature-img {
-    max-height: 38px;
-    width: auto;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
-}
-
-/* Professional round seal */
-.school-seal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 8px;
-}
-
-.seal-ring {
-    position: relative;
-    width: 114px;
-    height: 114px;
-    border-radius: 50%;
-    border: 3px double #006C35;
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-    transform: rotate(-3deg);
-}
-
-.seal-logo-img {
-    width: 50px;
-    height: auto;
-    opacity: 0.92;
-}
-
-.seal-caption {
-    margin-top: 3px;
-    font-size: 9px;
-    font-weight: 800;
-    color: #006C35;
-}
-
-.cert-footer-date {
-    position: absolute;
-    bottom: 8px;
-    right: 28px;
-    font-size: 10.5px;
-    color: #64748b;
-    font-weight: 700;
-}
-
-.cert-footer-serial {
-    position: absolute;
-    bottom: 8px;
-    left: 28px;
-    font-size: 10.5px;
-    color: #64748b;
-    font-weight: 700;
-    direction: ltr;
-}
-
-@media print {
-    body {
-        background: none;
-        padding: 0;
-    }
-    .page-break {
-        margin-bottom: 0;
-    }
-    .certificate-container {
-        box-shadow: none;
-        width: 100%;
-        max-width: 1000px;
-        border-radius: 0;
-    }
-}
+@page { size: A4 landscape; margin: 0; }
+body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
+.page-break { page-break-after: always; break-after: page; margin-bottom: 30px; }
+.certificate-container { width: 980px; height: 650px; margin: 0 auto; background: #ffffff; padding: 20px; box-sizing: border-box; position: relative; border: 14px solid #006C35; outline: 4px solid #D4AF37; outline-offset: -9px; border-radius: 14px; box-shadow: 0 14px 38px rgba(0,0,0,0.14); overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); }
+.watermark-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: auto; opacity: 0.055; pointer-events: none; z-index: 1; }
+.corner { position: absolute; width: 44px; height: 44px; z-index: 3; border-color: #D4AF37; }
+.corner-tr { top: 16px; right: 16px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 8px 0 0; }
+.corner-tl { top: 16px; left: 16px; border-top: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 8px 0 0 0; }
+.corner-br { bottom: 16px; right: 16px; border-bottom: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 0 8px 0; }
+.corner-bl { bottom: 16px; left: 16px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 8px; }
+.inner-border { border: 2px solid #D4AF37; height: 100%; padding: 12px 26px; box-sizing: border-box; border-radius: 8px; position: relative; z-index: 2; background: rgba(255,255,255,0.88); }
+.saudi-nat-header-bar { height: 5px; background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%); border-radius: 3px; margin-bottom: 8px; }
+.cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #006C35; padding-bottom: 8px; margin-bottom: 8px; }
+.header-side { font-size: 11.5px; font-weight: 700; color: #1e293b; line-height: 1.5; text-align: right; flex: 1.1; }
+.header-side.left-side { text-align: left; direction: ltr; }
+.saudi-title { color: #006C35; font-weight: 900; font-size: 12.5px; }
+.office-highlight { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #004d25 100%); color: #ffffff; padding: 2px 10px; border-radius: 6px; font-weight: 800; border: 1px solid #D4AF37; font-size: 11px; margin-top: 2px; }
+.logo-box-center { flex: 1.2; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.thaghr-logo-img { height: 70px; width: auto; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
+.dept-sub-badge { display: inline-block; font-size: 11px; color: #ffffff; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); padding: 2px 14px; border-radius: 12px; font-weight: 700; border: 1px solid #D4AF37; }
+.cert-title-badge { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; font-size: 21px; font-weight: 900; padding: 5px 40px; border-radius: 28px; border: 2px solid #D4AF37; box-shadow: 0 4px 14px rgba(0,108,53,0.25); margin: 2px 0 10px; letter-spacing: 0.5px; }
+.cert-body-box { margin-bottom: 8px; padding: 0 16px; }
+.cert-prefix-text { font-size: 14.5px; font-weight: 700; color: #334155; }
+.teacher-name { font-size: 27px; font-weight: 900; color: #006C35; margin: 4px 0; font-family: 'Amiri', serif; letter-spacing: 0.5px; text-shadow: 1px 1px 0 rgba(212,175,55,0.3); }
+.teacher-name::before, .teacher-name::after { content: " ✦ "; color: #D4AF37; font-size: 16px; vertical-align: middle; }
+.cert-body-text { font-size: 15px; line-height: 1.8; color: #1e293b; font-weight: 600; }
+.signatures-section { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 12px; padding-top: 4px; }
+.signatures-section.single-sig-mode { display: flex; justify-content: center; align-items: flex-start; position: relative; padding: 0 120px; }
+.signatures-section.single-sig-mode .sig-box { margin: 0 auto; }
+.signatures-section.single-sig-mode .school-seal { position: absolute; left: 20px; top: -5px; }
+.sig-box { min-width: 170px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.sig-role { font-size: 12.5px; font-weight: 800; color: #006C35; margin-bottom: 2px; }
+.sig-name { font-size: 14px; font-weight: 800; color: #0f172a; margin-top: 0px; margin-bottom: 4px; }
+.sig-img-container { height: 40px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.digital-signature-img { max-height: 38px; width: auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+.school-seal { display: flex; flex-direction: column; align-items: center; margin: 0 8px; }
+.seal-ring { position: relative; width: 114px; height: 114px; border-radius: 50%; border: 3px double #006C35; box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4); display: flex; align-items: center; justify-content: center; background: #ffffff; transform: rotate(-3deg); }
+.seal-logo-img { width: 50px; height: auto; opacity: 0.92; }
+.seal-caption { margin-top: 3px; font-size: 9px; font-weight: 800; color: #006C35; }
+.cert-footer-date { position: absolute; bottom: 8px; right: 28px; font-size: 10.5px; color: #64748b; font-weight: 700; }
+.cert-footer-serial { position: absolute; bottom: 8px; left: 28px; font-size: 10.5px; color: #64748b; font-weight: 700; direction: ltr; }
+@media print { body { background: none; padding: 0; } .page-break { margin-bottom: 0; } .certificate-container { box-shadow: none; width: 100%; max-width: 1000px; border-radius: 0; } }
 """
 
-### ==========================================================
-### 8. Single Certificate HTML Generator
-### ==========================================================
+##### ==========================================================
+##### 8. Single Certificate HTML Generator
+##### ==========================================================
 def build_certificate_single_html(teacher_name):
     sigs_html = ""
     for sig in chosen_signatures:
         sig_img_html = f'<div class="sig-img-container"><img src="{digital_sig_src}" class="digital-signature-img" alt="signature"></div>' if enable_digital_sig else '<div class="sig-img-container"></div>'
-        
         sigs_html += f'''
         <div class="sig-box">
             <div class="sig-role">{sig['role']}</div>
             <div class="sig-name">{sig['name']}</div>
             {sig_img_html}
         </div>'''
-    
+
     sig_section_class = "signatures-section single-sig-mode" if len(chosen_signatures) == 1 else "signatures-section"
-    
+
     body_text_html = cert_custom_text.replace("\n", "<br>")
     body_html = f'''
     <div class="cert-prefix-text">{cert_custom_prefix}</div>
     <div class="teacher-name">{teacher_name}</div>
     <div class="cert-body-text">{body_text_html}</div>'''
-    
+
     watermark_html = f'<img class="watermark-logo" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
     header_logo_html = f'<img class="thaghr-logo-img" src="{LOGO_SRC}" alt="logo">' if LOGO_SRC else ""
     seal_logo_html = f'<img class="seal-logo-img" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
-    
+
     return f'''
     <div class="certificate-container">
         {watermark_html}
@@ -740,9 +369,7 @@ def build_certificate_single_html(teacher_name):
                         {seal_logo_html}
                         <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                             <defs>
-                                <!-- Top Arc L to R over top -->
                                 <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
-                                <!-- Bottom Arc R to L under bottom, text faces UPWARDS upright -->
                                 <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
                             </defs>
                             <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
@@ -767,9 +394,9 @@ def build_certificate_single_html(teacher_name):
     </div>
     '''
 
-### ==========================================================
-### 9. Full Batch Certificates Document HTML Generator & PDF Converter
-### ==========================================================
+##### ==========================================================
+##### 9. Full Batch Certificates Document HTML Generator
+##### ==========================================================
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
     for idx, t_name in enumerate(teachers_list):
@@ -784,89 +411,15 @@ def build_full_certificates_document_html(teachers_list):
     )
     return full_html
 
-def convert_html_to_pdf_bytes(html_content):
-    """ Converts certificate HTML to PDF bytes using wkhtmltopdf """
-    try:
-        temp_html_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.html"
-        temp_pdf_path = f"/tmp/cert_temp_{datetime.datetime.now().timestamp()}.pdf"
-        
-        with open(temp_html_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-            
-        cmd = [
-            "wkhtmltopdf",
-            "--page-size", "A4",
-            "--orientation", "Landscape",
-            "--margin-top", "0",
-            "--margin-bottom", "0",
-            "--margin-left", "0",
-            "--margin-right", "0",
-            temp_html_path,
-            temp_pdf_path
-        ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
-        
-        if os.path.exists(temp_pdf_path) and os.path.getsize(temp_pdf_path) > 0:
-            with open(temp_pdf_path, "rb") as f:
-                pdf_data = f.read()
-            os.remove(temp_html_path)
-            os.remove(temp_pdf_path)
-            return pdf_data
-    except Exception:
-        pass
-    return None
-
-def send_smtp_email(server_host, server_port, sender_email, sender_pass, use_tls, recipient_email, teacher_name, cert_title, doc_id, pdf_bytes):
-    """ Real SMTP Email Dispatcher """
-    msg = MIMEMultipart()
-    msg['From'] = f"إدارة الإشراف الأكاديمي - مدارس الثغر <{sender_email}>"
-    msg['To'] = recipient_email
-    msg['Subject'] = f"📜 {cert_title} - المعلم: {teacher_name} (مدارس الثغر النموذجية الأهلية)"
-    
-    body = f"""السلام عليكم ورحمة الله وبركاته،
-
-المعلم الفاضل: {teacher_name} المحترم،
-تحية طيبة وبعد،،
-
-تتقدم لكم إدارة الإشراف الأكاديمي بمدارس الثغر النموذجية الأهلية ببالغ التقدير والامتنان، وتمنحكم ({cert_title}).
-
-مرفق مع هذه الرسالة النسخة المعتمدة والرسمية بصيغة (PDF) للشهادة.
-
-• رقم الوثيقة المعتمدة: {doc_id}
-• القسم/المرحلة: {selected_dept}
-• تاريخ الإصدار: {formatted_date}
-
-مع أطيب تحياتنا ودعواتنا لكم بدوام التوفيق والتميز.
-
----
-إدارة الإشراف الأكاديمي
-مدارس الثغر النموذجية الأهلية
-    """
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
-    
-    if pdf_bytes:
-        part = MIMEApplication(pdf_bytes, Name=f"Certificate_{doc_id}.pdf")
-        part['Content-Disposition'] = f'attachment; filename="Certificate_{doc_id}.pdf"'
-        msg.attach(part)
-        
-    server = smtplib.SMTP(server_host, int(server_port), timeout=12)
-    if use_tls:
-        server.starttls()
-    if sender_pass.strip():
-        server.login(sender_email, sender_pass.strip())
-    server.sendmail(sender_email, [recipient_email], msg.as_string())
-    server.quit()
-    return True
-
-### ==========================================================
-### 10. Live Preview, Batch Export UI & Real SMTP Email Dispatch
-### ==========================================================
+##### ==========================================================
+##### 10. Live Preview & Batch Export UI
+##### ==========================================================
 with col_preview:
-    st.markdown("### 🖼️ المعاينة الحية والتصدير وإرسال البريد الإلكتروني")
+    st.markdown("### 🖼️ المعاينة الحية والتصدير والطباعة")
     if not selected_teachers:
         st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
     else:
-        st.markdown(f"**عدد المعلمين المحدد لاصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**")
+        st.markdown(f" **عدد المعلمين المحدد لإصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)** ")
 
         preview_tabs = st.tabs([f"📜 شهادة: {t}" for t in selected_teachers[:6]])
         for idx, tab_teacher in enumerate(selected_teachers[:6]):
@@ -879,106 +432,6 @@ with col_preview:
 
         st.markdown("---")
 
-        # --- SMTP Real Email Dispatch UI ---
-        st.markdown("#### 📧 إرسال الشهادات المعتمدة (PDF) عبر البريد الإلكتروني المباشر")
-        
-        select_all_emails = st.checkbox(
-            f"✅ تحديد جميع المعلمين المحددين ({len(selected_teachers)} معلم) لإرسال الشهادات لهم دفعة واحدة",
-            value=True,
-            key="chk_select_all_emails"
-        )
-        
-        dept_email_map = st.session_state["dept_teachers_dict"].get(selected_dept, {})
-
-        if select_all_emails:
-            st.info(f"📧 سيتم توليد وإرسال شهادات PDF لجميع المعلمين المحددين ({len(selected_teachers)} معلم) إلى عناوين بريدهم الإلكتروني المسجلة.")
-            
-            if st.button("✉️ إرسال الشهادات الفعلي (PDF) لجميع المعلمين المحددين دفعة واحدة", type="primary", use_container_width=True, key="btn_send_batch_email"):
-                if not sender_password_input.strip():
-                    st.warning("⚠️ **تنبيه:** لم تقم بإدخال كلمة مرور التطبيق (App Password) في إعدادات خادم SMTP الجانبية.\n\nسيتم إجراء **محاكاة للإرسال** الآن. لإرسال بريد إلكتروني حقيقي يصل لصندوق الوارد، أدخل كلمة مرور التطبيقات في قسم (⚙️ إعدادات خادم البريد).")
-                    dispatch_details = []
-                    for t in selected_teachers:
-                        t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
-                        doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
-                        dispatch_details.append(f"• **{t}** ➔ `{t_email}` (الوثيقة: `{doc_id}`)")
-                    msg_body = "\n".join(dispatch_details)
-                    st.success(f"🎉 **تمت عملية معالجة الشهادات وإصدار إشعارات الإرسال ({len(selected_teachers)} معلم):**\n\n{msg_body}")
-                    st.balloons()
-                else:
-                    with st.spinner("⏳ جاري الاتصال بخادم البريد وتوليد شهادات PDF لكل معلم وإرسالها..."):
-                        success_count = 0
-                        err_logs = []
-                        for t in selected_teachers:
-                            t_email = dept_email_map.get(t, f"{t.replace(' ', '_')}@thaghr.edu.sa")
-                            doc_id = f"TH-{abs(hash(t)) % 900000 + 100000}"
-                            single_html = build_full_certificates_document_html([t])
-                            pdf_data = convert_html_to_pdf_bytes(single_html)
-                            
-                            try:
-                                send_smtp_email(
-                                    smtp_server_input,
-                                    smtp_port_input,
-                                    sender_email_input,
-                                    sender_password_input,
-                                    use_tls_checkbox,
-                                    t_email,
-                                    t,
-                                    cert_main_title,
-                                    doc_id,
-                                    pdf_data
-                                )
-                                success_count += 1
-                            except Exception as e:
-                                err_logs.append(f"• {t} (`{t_email}`): {str(e)}")
-                        
-                        if success_count > 0:
-                            st.success(f"🎉 **تم إرسال {success_count} شهادة (PDF) بنجاح عبر خادم البريد الإلكتروني!**")
-                            st.balloons()
-                        if err_logs:
-                            st.error(f"❌ تعذر إرسال البريد لبعض المعلمين:\n" + "\n".join(err_logs))
-
-        else:
-            col_em1, col_em2 = st.columns([1.2, 1])
-            with col_em1:
-                target_teacher_for_email = st.selectbox(
-                    "اختر المعلم المراد إرسال شهادته إليها:",
-                    options=selected_teachers,
-                    key="select_email_teacher"
-                )
-                default_email_for_teacher = dept_email_map.get(target_teacher_for_email, f"{target_teacher_for_email.replace(' ', '_')}@thaghr.edu.sa")
-                recipient_email_input = st.text_input("✉️ تأكيد البريد الإلكتروني للارسال:", value=default_email_for_teacher, key="input_target_email")
-            
-            with col_em2:
-                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("✉️ إرسال الشهادة الفعلي (PDF) للمعلم المخصص", use_container_width=True, type="primary", key="btn_send_single_email"):
-                    doc_id = f"TH-{abs(hash(target_teacher_for_email)) % 900000 + 100000}"
-                    
-                    if not sender_password_input.strip():
-                        st.warning("⚠️ **تنبيه:** يرجى إدخال كلمة مرور التطبيق (App Password) في قسم (⚙️ إعدادات خادم البريد) في لوحة التحكم لإتمام الإرسال الفعلي عبر خادم SMTP.")
-                        st.info(f"إشعارات المحاكاة: المعلم **{target_teacher_for_email}** ➔ `{recipient_email_input}` (الوثيقة: `{doc_id}`)")
-                    else:
-                        with st.spinner(f"⏳ جاري توليد شهادة PDF وتجهيز البريد للمعلم ({target_teacher_for_email})..."):
-                            single_html = build_full_certificates_document_html([target_teacher_for_email])
-                            pdf_data = convert_html_to_pdf_bytes(single_html)
-                            try:
-                                send_smtp_email(
-                                    smtp_server_input,
-                                    smtp_port_input,
-                                    sender_email_input,
-                                    sender_password_input,
-                                    use_tls_checkbox,
-                                    recipient_email_input,
-                                    target_teacher_for_email,
-                                    cert_main_title,
-                                    doc_id,
-                                    pdf_data
-                                )
-                                st.success(f"✅ **تم إرسال الشهادة (PDF) بنجاح إلى البريد الإلكتروني:**\n`{recipient_email_input}`\nللمعلم: **{target_teacher_for_email}** (رقم الوثيقة: `{doc_id}`)")
-                                st.balloons()
-                            except Exception as e:
-                                st.error(f"❌ حدث خطأ أثناء الاتصال بخادم البريد SMTP:\n`{str(e)}`\n\nتأكد من صحة كلمة مرور التطبيق ومنفذ الخادم (587) وتفعيل خيار التشفير TLS.")
-
-        st.markdown("---")
         full_batch_html = build_full_certificates_document_html(selected_teachers)
         st.download_button(
             label=f"🖨️ تصدير وطباعة شهادات جميع المعلمين المحددين ({len(selected_teachers)} معلم) (HTML / PDF)",
