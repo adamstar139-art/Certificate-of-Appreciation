@@ -4,10 +4,12 @@ import base64
 import os
 import subprocess
 import tempfile
+import json
+import requests
 
-##### ==========================================================
-##### 1. Page Configuration
-##### ==========================================================
+###### ==========================================================
+###### 1. Page Configuration
+###### ==========================================================
 st.set_page_config(
     page_title="نظام إدارة وإصدار شهادات الإشراف الأكاديمي - مدارس الثغر النموذجية الأهلية",
     page_icon="📜",
@@ -15,9 +17,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-##### ==========================================================
-##### 2. Sample Digital Signature SVG (Base64)
-##### ==========================================================
+###### ==========================================================
+###### 2. Sample Digital Signature SVG (Base64)
+###### ==========================================================
 SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
   <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
@@ -26,9 +28,9 @@ SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 </svg>
 '''.strip().encode('utf-8')).decode('utf-8')
 
-##### ==========================================================
-##### 3. Load School Logo (embedded as base64)
-##### ==========================================================
+###### ==========================================================
+###### 3. Load School Logo (embedded as base64)
+###### ==========================================================
 @st.cache_data(show_spinner=False)
 def load_logo_b64():
     candidates = [
@@ -47,89 +49,75 @@ def load_logo_b64():
 LOGO_B64 = load_logo_b64()
 LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 
-##### ==========================================================
-##### 4. Advanced CSS for Streamlit UI (Full RTL & Modern Styling)
-##### ==========================================================
+###### ==========================================================
+###### 4. Advanced CSS for Streamlit UI (Full RTL & Modern Styling)
+###### ==========================================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-    
-    /* Full Application Right-To-Left (RTL) Enforcement */
-    html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
-        direction: rtl !important;
-        text-align: right !important;
-        font-family: 'Cairo', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif !important;
-    }
-
-    /* Sidebar RTL styling */
-    [data-testid="stSidebar"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-
-    /* All Input Widgets RTL */
-    .stTextInput input, .stTextArea textarea, .stSelectbox select, div[role="combobox"], 
-    .stMultiSelect div, div[role="radiogroup"], .stNumberInput input, .stDateInput input {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-
-    /* Labels & Radio / Checkbox Texts RTL */
-    label, .stRadio label, .stCheckbox label, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-
-    /* Custom Credit Badge */
-    .designer-credit-badge {
-        background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
-        color: #D4AF37;
-        padding: 12px;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 14px;
-        border: 1px solid #D4AF37;
-        margin-top: 15px;
-        direction: rtl;
-    }
-
-    /* Custom PDF Export Button Highlight */
-    .stDownloadButton > button {
-        background: linear-gradient(135deg, #006C35 0%, #004D25 100%) !important;
-        color: #ffffff !important;
-        font-weight: 800 !important;
-        border: 1px solid #D4AF37 !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-    }
-
-    /* Adjust Columns RTL spacing */
-    [data-testid="column"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+.stApp {
+    background-color: #f8fafc;
+}
+.main-header-banner {
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px rgba(0, 108, 53, 0.2);
+    border-bottom: 4px solid #D4AF37;
+    text-align: center;
+}
+.main-header-banner h1 {
+    color: #ffffff !important;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    margin-bottom: 8px !important;
+}
+.main-header-banner p {
+    color: #e2e8f0 !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+}
+.designer-credit-badge {
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid #D4AF37;
+    margin-top: 20px;
+}
 </style>
 """, unsafe_allow_html=True)
 
-##### ==========================================================
-##### 5. Main Site Header
-##### ==========================================================
+###### ==========================================================
+###### 5. Main Site Header
+###### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: white; border-radius: 10px; margin-bottom: 20px; direction: rtl;">
+<div class="main-header-banner">
     {_header_logo}
-    <h1 style="margin:0; font-size: 26px;">📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي</h1>
-    <h3 style="margin:5px 0 0 0; font-size: 16px; color: #D4AF37;">مدارس الثغر النموذجية الأهلية</h3>
+    <h1>📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي</h1>
+    <p>مدارس الثغر النموذجية الأهلية — إصدار وطباعة شهادات التكريم والدورات التدريبية المعتمدة</p>
 </div>
 """, unsafe_allow_html=True)
 
 if not LOGO_SRC:
     st.warning("⚠️ لم يتم العثور على ملف الشعار (thaghr_logo.png). ضعه بجانب ملف app.py لإظهار الشعار في الشهادة.")
 
-##### ==========================================================
-##### 6. Initialize Session State with Teachers
-##### ==========================================================
+###### ==========================================================
+###### Supabase Persistence & Local File Database Helper Functions
+###### ==========================================================
+TEACHERS_FILE = "teachers.json"
+
 INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ محمد سامي السعيد",
     "أ/ علي محمد معوض",
@@ -144,11 +132,84 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ إبراهيم علي العتيبي",
     "أ/ عيسى خالد العويس",
     "أ/ زيد بن علي التميمي",
-    "أ/ أحمد سلامة"
+    
 ]
 
-if "dept_teachers_dict" not in st.session_state:
-    st.session_state["dept_teachers_dict"] = {
+def get_supabase_credentials():
+    """الحصول على بيانات الاتصال بـ Supabase من الأسرار أو المتغيرات أو الإدخال اليدوي"""
+    url = st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else ""
+    key = st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else ""
+    
+    if "supabase_url_input" in st.session_state and st.session_state["supabase_url_input"]:
+        url = st.session_state["supabase_url_input"]
+    if "supabase_key_input" in st.session_state and st.session_state["supabase_key_input"]:
+        key = st.session_state["supabase_key_input"]
+        
+    if not url:
+        url = os.getenv("SUPABASE_URL", "")
+    if not key:
+        key = os.getenv("SUPABASE_KEY", "")
+        
+    return url.strip().rstrip('/'), key.strip()
+
+def load_teachers_from_supabase():
+    """تحميل قائمة المعلمين من قاعدة بيانات Supabase عبر REST API"""
+    url, key = get_supabase_credentials()
+    if not url or not key:
+        return None
+    try:
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        }
+        resp = requests.get(f"{url}/rest/v1/department_teachers?select=department,teachers", headers=headers, timeout=4)
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, list) and len(data) > 0:
+                res_dict = {}
+                for row in data:
+                    dept = row.get("department")
+                    t_list = row.get("teachers", [])
+                    if dept and isinstance(t_list, list):
+                        res_dict[dept] = t_list
+                return res_dict
+    except Exception:
+        pass
+    return None
+
+def save_teachers_to_supabase(dept_teachers_dict):
+    """حفظ جميع الأقسام والمعلمين في قاعدة بيانات Supabase"""
+    url, key = get_supabase_credentials()
+    if not url or not key:
+        return False
+    try:
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+        }
+        payload = [
+            {"department": dept, "teachers": teachers}
+            for dept, teachers in dept_teachers_dict.items()
+        ]
+        resp = requests.post(f"{url}/rest/v1/department_teachers", headers=headers, json=payload, timeout=5)
+        if resp.status_code in [200, 201, 204]:
+            return True
+    except Exception:
+        pass
+    return False
+
+def load_teachers_local():
+    """تحميل القائمة من ملف JSON المحلي عند عدم توفر Supabase"""
+    if os.path.exists(TEACHERS_FILE):
+        try:
+            with open(TEACHERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
         "القسم المتوسط بنين": list(INTERMEDIATE_TEACHERS_FROM_SOURCE),
         "القسم المتوسط بنات": ["معلم جديد"],
         "القسم الابتدائي بنين": ["معلم جديد"],
@@ -156,6 +217,28 @@ if "dept_teachers_dict" not in st.session_state:
         "القسم الثانوي بنين": ["معلم جديد"],
         "القسم الثانوي بنات": ["معلم جديد"]
     }
+
+def save_teachers_local(data):
+    """حفظ القائمة محلياً في ملف JSON"""
+    try:
+        with open(TEACHERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
+###### ==========================================================
+###### 6. Initialize Session State with Teachers
+###### ==========================================================
+if "dept_teachers_dict" not in st.session_state:
+    sp_data = load_teachers_from_supabase()
+    if sp_data:
+        default_dict = load_teachers_local()
+        for dept, t_list in default_dict.items():
+            if dept not in sp_data:
+                sp_data[dept] = t_list
+        st.session_state["dept_teachers_dict"] = sp_data
+    else:
+        st.session_state["dept_teachers_dict"] = load_teachers_local()
 
 if "courses_list" not in st.session_state:
     st.session_state["courses_list"] = [
@@ -179,6 +262,44 @@ col_ctrl, col_preview = st.columns([0.75, 2.25])
 
 with col_ctrl:
     st.markdown("### ⚙️ لوحة التحكم والإعدادات")
+    
+    # قسم ربط قاعدة البيانات Supabase
+    with st.expander("⚡ ربط قاعدة البيانات السحابية (Supabase) للحفظ الدائم"):
+        st.markdown("""
+        **خطوات تفعيل الحفظ الدائم عبر كافة الأجهزة:**
+        1. في حسابك على **Supabase**، افتح **SQL Editor** ونفّذ الأمر التالي لإنشاء جدول المعلمين:
+        ```sql
+        CREATE TABLE IF NOT EXISTS department_teachers (
+            department TEXT PRIMARY KEY,
+            teachers JSONB NOT NULL DEFAULT '[]'::jsonb
+        );
+        ALTER TABLE department_teachers ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "Allow Public All" ON department_teachers FOR ALL USING (true) WITH CHECK (true);
+        ```
+        2. أدخل بيانات المشروع أدناه (أو أضفها في ملف `.streamlit/secrets.toml`):
+        """)
+        sp_url_input = st.text_input(
+            "Supabase Project URL:",
+            value=st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else "",
+            key="supabase_url_input",
+            placeholder="https://your-project.supabase.co"
+        )
+        sp_key_input = st.text_input(
+            "Supabase Anon / Service Key:",
+            value=st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else "",
+            type="password",
+            key="supabase_key_input",
+            placeholder="eyJhYmdj..."
+        )
+        if st.button("🔄 مزامنة البيانات مع Supabase الآن"):
+            synced_data = load_teachers_from_supabase()
+            if synced_data:
+                st.session_state["dept_teachers_dict"] = synced_data
+                save_teachers_local(synced_data)
+                st.success("✅ تم مزامنة واستعادة البيانات بنجاح من Supabase!")
+                st.rerun()
+            else:
+                st.error("❌ تعذر الاتصال بـ Supabase. تحقق من الرابط والمفتاح والتأكد من إنشاء الجدول.")
 
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
@@ -227,9 +348,20 @@ with col_ctrl:
         new_teacher_input = st.text_input("اسم المعلم الجديد:", placeholder="أ/ اكتب الاسم رباعياً...", key="input_new_teacher")
         if st.button("💾 حفظ وإضافة القائمة", key="btn_add_teacher"):
             if new_teacher_input.strip():
-                if new_teacher_input.strip() not in st.session_state["dept_teachers_dict"][selected_dept]:
-                    st.session_state["dept_teachers_dict"][selected_dept].append(new_teacher_input.strip())
-                    st.success(f"✅ تم إضافة المعلم إلى {selected_dept}: {new_teacher_input.strip()}")
+                t_clean = new_teacher_input.strip()
+                if t_clean not in st.session_state["dept_teachers_dict"][selected_dept]:
+                    st.session_state["dept_teachers_dict"][selected_dept].append(t_clean)
+                    
+                    # 1. الحفظ المحلي في ملف JSON
+                    save_teachers_local(st.session_state["dept_teachers_dict"])
+                    
+                    # 2. الحفظ السحابي في Supabase
+                    sp_saved = save_teachers_to_supabase(st.session_state["dept_teachers_dict"])
+                    
+                    if sp_saved:
+                        st.success(f"✅ تم إضافة المعلم وحفظه دائماً في Supabase ومحلياً: {t_clean}")
+                    else:
+                        st.success(f"✅ تم إضافة المعلم وحفظه محلياً: {t_clean}")
                     st.rerun()
 
     st.markdown("---")
@@ -308,9 +440,9 @@ with col_ctrl:
     </div>
     """, unsafe_allow_html=True)
 
-##### ==========================================================
-##### 7. Certificate Print/Export CSS (Saudi National Identity Theme)
-##### ==========================================================
+###### ==========================================================
+###### 7. Certificate Print/Export CSS (Saudi National Identity Theme)
+###### ==========================================================
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
 @page { size: A4 landscape; margin: 0; }
@@ -357,9 +489,9 @@ body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo'
 @media print { body { background: none; padding: 0; } .page-break { margin-bottom: 0; } .certificate-container { box-shadow: none; width: 100%; max-width: 1000px; border-radius: 0; } }
 """
 
-##### ==========================================================
-##### 8. Single Certificate HTML Generator
-##### ==========================================================
+###### ==========================================================
+###### 8. Single Certificate HTML Generator
+###### ==========================================================
 def build_certificate_single_html(teacher_name):
     sigs_html = ""
     for sig in chosen_signatures:
@@ -450,15 +582,15 @@ def build_certificate_single_html(teacher_name):
     </div>
     '''
 
-##### ==========================================================
-##### 9. Full Batch Certificates Document HTML Generator
-##### ==========================================================
+###### ==========================================================
+###### 9. Full Batch Certificates Document HTML Generator
+###### ==========================================================
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
     for idx, t_name in enumerate(teachers_list):
         page_break_class = "page-break" if idx < len(teachers_list) - 1 else ""
         single_certs_html += f'<div class="{page_break_class}">{build_certificate_single_html(t_name)}</div>'
-    
+
     css = CERT_CSS
     full_html = (
         '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">'
@@ -467,9 +599,9 @@ def build_full_certificates_document_html(teachers_list):
     )
     return full_html
 
-##### ==========================================================
-##### 10. PDF File Generator Helper Function (Safe Temp Directory)
-##### ==========================================================
+###### ==========================================================
+###### 10. PDF File Generator Helper Function (Safe Temp Directory)
+###### ==========================================================
 def generate_pdf_bytes(html_content):
     try:
         temp_dir = tempfile.gettempdir()
@@ -503,15 +635,15 @@ def generate_pdf_bytes(html_content):
         pass
     return None
 
-##### ==========================================================
-##### 11. Live Preview & PDF/HTML Export UI
-##### ==========================================================
+###### ==========================================================
+###### 11. Live Preview & PDF/HTML Export UI
+###### ==========================================================
 with col_preview:
     st.markdown("### 🖼️ المعاينة الحية والتصدير والطباعة")
     if not selected_teachers:
         st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
     else:
-        st.markdown(f" **عدد المعلمين المحدد لإصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)** ")
+        st.markdown(f"  **عدد المعلمين المحدد لإصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**  ")
 
         preview_tabs = st.tabs([f"📜 شهادة: {t}" for t in selected_teachers[:6]])
         for idx, tab_teacher in enumerate(selected_teachers[:6]):
