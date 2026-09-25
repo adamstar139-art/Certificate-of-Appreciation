@@ -136,20 +136,13 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
 ]
 
 def get_supabase_credentials():
-    """الحصول على بيانات الاتصال بـ Supabase من الأسرار أو المتغيرات أو الإدخال اليدوي"""
+    """الحصول على بيانات الاتصال بـ Supabase من الأسرار (Secrets) أو المتغيرات البيئية"""
     url = st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else ""
     key = st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else ""
-    
-    if "supabase_url_input" in st.session_state and st.session_state["supabase_url_input"]:
-        url = st.session_state["supabase_url_input"]
-    if "supabase_key_input" in st.session_state and st.session_state["supabase_key_input"]:
-        key = st.session_state["supabase_key_input"]
-        
     if not url:
         url = os.getenv("SUPABASE_URL", "")
     if not key:
         key = os.getenv("SUPABASE_KEY", "")
-        
     return url.strip().rstrip('/'), key.strip()
 
 def load_teachers_from_supabase():
@@ -263,43 +256,20 @@ col_ctrl, col_preview = st.columns([0.75, 2.25])
 with col_ctrl:
     st.markdown("### ⚙️ لوحة التحكم والإعدادات")
     
-    # قسم ربط قاعدة البيانات Supabase
-    with st.expander("⚡ ربط قاعدة البيانات السحابية (Supabase) للحفظ الدائم"):
+    # مؤشر حالة الربط بقاعدة البيانات (Supabase)
+    sp_url, sp_key = get_supabase_credentials()
+    if sp_url and sp_key:
         st.markdown("""
-        **خطوات تفعيل الحفظ الدائم عبر كافة الأجهزة:**
-        1. في حسابك على **Supabase**، افتح **SQL Editor** ونفّذ الأمر التالي لإنشاء جدول المعلمين:
-        ```sql
-        CREATE TABLE IF NOT EXISTS department_teachers (
-            department TEXT PRIMARY KEY,
-            teachers JSONB NOT NULL DEFAULT '[]'::jsonb
-        );
-        ALTER TABLE department_teachers ENABLE ROW LEVEL SECURITY;
-        CREATE POLICY "Allow Public All" ON department_teachers FOR ALL USING (true) WITH CHECK (true);
-        ```
-        2. أدخل بيانات المشروع أدناه (أو أضفها في ملف `.streamlit/secrets.toml`):
-        """)
-        sp_url_input = st.text_input(
-            "Supabase Project URL:",
-            value=st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else "",
-            key="supabase_url_input",
-            placeholder="https://your-project.supabase.co"
-        )
-        sp_key_input = st.text_input(
-            "Supabase Anon / Service Key:",
-            value=st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else "",
-            type="password",
-            key="supabase_key_input",
-            placeholder="eyJhYmdj..."
-        )
-        if st.button("🔄 مزامنة البيانات مع Supabase الآن"):
-            synced_data = load_teachers_from_supabase()
-            if synced_data:
-                st.session_state["dept_teachers_dict"] = synced_data
-                save_teachers_local(synced_data)
-                st.success("✅ تم مزامنة واستعادة البيانات بنجاح من Supabase!")
-                st.rerun()
-            else:
-                st.error("❌ تعذر الاتصال بـ Supabase. تحقق من الرابط والمفتاح والتأكد من إنشاء الجدول.")
+        <div style="background-color: #d1fae5; color: #065f46; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #34d399; font-weight: 800; text-align: center; margin-bottom: 18px; font-size: 14.5px; box-shadow: 0 2px 8px rgba(52, 211, 153, 0.15);">
+            🟢 حالة الاتصال: متصل بـ Supabase (الحفظ الدائم مفعل)
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #f87171; font-weight: 800; text-align: center; margin-bottom: 18px; font-size: 14.5px; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.15);">
+            🔴 حالة الاتصال: غير متصل بـ Supabase (حفظ محلي مؤقت)
+        </div>
+        """, unsafe_allow_html=True)
 
     cert_type = st.radio(
         "🏷️ نوع الشهادة:",
