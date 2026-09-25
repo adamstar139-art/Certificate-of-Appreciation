@@ -136,14 +136,91 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
 ]
 
 def get_supabase_credentials():
-    """الحصول على بيانات الاتصال بـ Supabase من الأسرار (Secrets) أو المتغيرات البيئية"""
-    url = st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else ""
-    key = st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else ""
+    """الحصول الفعّال على بيانات الاتصال بـ Supabase بجميع صيغ الأسماء الممكنة في st.secrets و env"""
+    url = ""
+    key = ""
+    
+    # 1. البحث الشامل داخل st.secrets
+    try:
+        if hasattr(st, "secrets") and st.secrets is not None:
+            url_keys = ["SUPABASE_URL", "supabase_url", "SUPABASE_PROJECT_URL", "URL", "url"]
+            key_keys = ["SUPABASE_KEY", "supabase_key", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_KEY", "KEY", "key"]
+            
+            for k in url_keys:
+                try:
+                    val = st.secrets.get(k, None) if hasattr(st.secrets, "get") else (st.secrets[k] if k in st.secrets else None)
+                    if val:
+                        url = str(val)
+                        break
+                except Exception:
+                    pass
+            
+            for k in key_keys:
+                try:
+                    val = st.secrets.get(k, None) if hasattr(st.secrets, "get") else (st.secrets[k] if k in st.secrets else None)
+                    if val:
+                        key = str(val)
+                        break
+                except Exception:
+                    pass
+
+            if not url or not key:
+                for table_key in ["supabase", "SUPABASE", "db", "database"]:
+                    try:
+                        if table_key in st.secrets:
+                            tbl = st.secrets[table_key]
+                            if not url:
+                                for uk in ["url", "URL", "supabase_url", "SUPABASE_URL"]:
+                                    if uk in tbl:
+                                        url = str(tbl[uk])
+                                        break
+                            if not key:
+                                for kk in ["key", "KEY", "anon_key", "service_key", "supabase_key", "SUPABASE_KEY"]:
+                                    if kk in tbl:
+                                        key = str(tbl[kk])
+                                        break
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    # 2. البحث في المتغيرات البيئية كخيار إضافي
     if not url:
-        url = os.getenv("SUPABASE_URL", "")
+        for k in ["SUPABASE_URL", "supabase_url"]:
+            if os.getenv(k):
+                url = os.getenv(k)
+                break
     if not key:
-        key = os.getenv("SUPABASE_KEY", "")
-    return url.strip().rstrip('/'), key.strip()
+        for k in ["SUPABASE_KEY", "supabase_key", "SUPABASE_ANON_KEY"]:
+            if os.getenv(k):
+                key = os.getenv(k)
+                break
+
+    return str(url or "").strip().rstrip('/'), str(key or "").strip()
+
+def check_supabase_connection():
+    """اختبار الاتصال الفعلي بقاعدة بيانات Supabase والتحقق من وجود الجدول ورغبة الوصول"""
+    url, key = get_supabase_credentials()
+    if not url or not key:
+        return False, "لم يتم العثور على مفاتيح SUPABASE_URL أو SUPABASE_KEY في Secrets"
+    
+    try:
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        }
+        resp = requests.get(f"{url}/rest/v1/department_teachers?select=department", headers=headers, timeout=5)
+        if resp.status_code == 200:
+            return True, "الاتصال ناجح مع Supabase والجدول جاهز"
+        elif resp.status_code in [401, 403]:
+            return False, "المفتاح (API Key) غير صحيح أو لا يملك صلاحيات الوصول"
+        elif resp.status_code == 404:
+            return False, "جدول department_teachers غير موجود في قاعدة البيانات"
+        else:
+            return False, f"رمز الاستجابة من Supabase: {resp.status_code}"
+    except Exception as e:
+        return False, f"خطأ في شبكة الاتصال: {str(e)}"
 
 def load_teachers_from_supabase():
     """تحميل قائمة المعلمين من قاعدة بيانات Supabase عبر REST API"""
@@ -156,7 +233,7 @@ def load_teachers_from_supabase():
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json"
         }
-        resp = requests.get(f"{url}/rest/v1/department_teachers?select=department,teachers", headers=headers, timeout=4)
+        resp = requests.get(f"{url}/rest/v1/department_teachers?select=department,teachers", headers=headers, timeout=5)
         if resp.status_code == 200:
             data = resp.json()
             if isinstance(data, list) and len(data) > 0:
@@ -167,6 +244,10 @@ def load_teachers_from_supabase():
                     if dept and isinstance(t_list, list):
                         res_dict[dept] = t_list
                 return res_dict
+            elif isinstance(data, list) and len(data) == 0:
+                default_data = load_teachers_local()
+                save_teachers_to_supabase(default_data)
+                return default_data
     except Exception:
         pass
     return None
@@ -257,17 +338,20 @@ with col_ctrl:
     st.markdown("### ⚙️ لوحة التحكم والإعدادات")
     
     # مؤشر حالة الربط بقاعدة البيانات (Supabase)
-    sp_url, sp_key = get_supabase_credentials()
-    if sp_url and sp_key:
+    is_connected, status_detail = check_supabase_connection()
+    if is_connected:
         st.markdown("""
         <div style="background-color: #d1fae5; color: #065f46; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #34d399; font-weight: 800; text-align: center; margin-bottom: 18px; font-size: 14.5px; box-shadow: 0 2px 8px rgba(52, 211, 153, 0.15);">
             🟢 حالة الاتصال: متصل بـ Supabase (الحفظ الدائم مفعل)
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown("""
-        <div style="background-color: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #f87171; font-weight: 800; text-align: center; margin-bottom: 18px; font-size: 14.5px; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.15);">
+        st.markdown(f"""
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #f87171; font-weight: 800; text-align: center; margin-bottom: 8px; font-size: 14.5px; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.15);">
             🔴 حالة الاتصال: غير متصل بـ Supabase (حفظ محلي مؤقت)
+        </div>
+        <div style="font-size: 11.5px; color: #991b1b; text-align: center; margin-bottom: 18px; font-weight: 700; background: #fff5f5; padding: 6px 10px; border-radius: 8px;">
+            ℹ️ {status_detail}
         </div>
         """, unsafe_allow_html=True)
 
