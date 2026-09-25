@@ -132,7 +132,7 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ إبراهيم علي العتيبي",
     "أ/ عيسى خالد العويس",
     "أ/ زيد بن علي التميمي",
-    
+    "أ/ أحمد سلامة"
 ]
 
 def get_supabase_credentials():
