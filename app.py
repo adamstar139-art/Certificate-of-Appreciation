@@ -966,7 +966,6 @@ def build_certificate_single_html(teacher_name):
             </div>
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
-            <div class="cert-footer-serial">رقم الوثيقة: TH-{abs(hash(teacher_name)) % 900000 + 100000}</div>
         </div>
     </div>
     '''
