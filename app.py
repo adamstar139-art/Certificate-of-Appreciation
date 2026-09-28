@@ -416,7 +416,7 @@ with col_ctrl:
 
     st.markdown("---")
 
-    if "حضور دورة" in cert_type:
+    if "حضور تدريب" in cert_type:
         st.markdown("#### 📚 الدورة التدريبية")
         selected_course = st.selectbox(
             "اختر الدورة التدريبية:",
@@ -435,7 +435,7 @@ with col_ctrl:
         course_hours = st.number_input("عدد الساعات التدريبية:", min_value=1, max_value=100, value=15)
         course_date = st.date_input("تاريخ انعقاد الدورة:", value=datetime.date.today())
         formatted_date = course_date.strftime("%Y/%m/%d") + " م"
-        cert_main_title = "شهادة حضور دورة تدريبية"
+        cert_main_title = "شهادة حضور تدريب"
         default_body_prefix = "تشهد مدارس الثغر النموذجية الأهلية أن الأستاذ/"
         default_body_text = f"قد حضر برنامجا تدريبيا بعنوان/ \n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية وعليه مُنح هذه الشهادة متمنين له دوام التوفيق ."
     else:
