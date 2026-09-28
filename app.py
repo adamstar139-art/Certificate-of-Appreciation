@@ -22,9 +22,9 @@ st.set_page_config(
 ###### ==========================================================
 SAMPLE_DIGITAL_SIG_SVG = "data:image/svg+xml;base64," + base64.b64encode('''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
-  <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
-  <path d="M 30 52 C 70 58, 120 50, 180 54" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="4,2"/>
-  <text x="110" y="66" font-family="'Amiri', 'Cairo', sans-serif" font-size="11" font-weight="bold" fill="#006C35" text-anchor="middle">توقيع رقمي معتمد ✦</text>
+    <path d="M 15 45 C 35 12, 65 58, 95 25 C 115 5, 135 60, 165 30 C 185 10, 195 45, 210 25" fill="none" stroke="#006C35" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 30 52 C 70 58, 120 50, 180 54" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="4,2"/>
+    <text x="110" y="66" font-family="'Amiri', 'Cairo', sans-serif" font-size="11" font-weight="bold" fill="#006C35" text-anchor="middle">توقيع رقمي معتمد ✦</text>
 </svg>
 '''.strip().encode('utf-8')).decode('utf-8')
 
@@ -54,47 +54,50 @@ LOGO_SRC = f"data:image/png;base64,{LOGO_B64}" if LOGO_B64 else ""
 ###### ==========================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&display=swap');
-html, body, [class*="css"] {
-    font-family: 'Cairo', sans-serif;
-    direction: rtl;
-    text-align: right;
-}
-.stApp {
-    background-color: #f8fafc;
-}
-.main-header-banner {
-    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
-    color: white;
-    padding: 24px;
-    border-radius: 16px;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 25px rgba(0, 108, 53, 0.2);
-    border-bottom: 4px solid #D4AF37;
-    text-align: center;
-}
-.main-header-banner h1 {
-    color: #ffffff !important;
-    font-size: 26px !important;
-    font-weight: 800 !important;
-    margin-bottom: 8px !important;
-}
-.main-header-banner p {
-    color: #e2e8f0 !important;
-    font-size: 14px !important;
-    margin: 0 !important;
-}
-.designer-credit-badge {
-    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
-    color: white;
-    padding: 10px 16px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 13px;
-    border: 1px solid #D4AF37;
-    margin-top: 20px;
-}
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&display=swap');
+    
+    html, body, [class*="css"], .stApp {
+        font-family: 'Cairo', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+    
+    .main-header {
+        background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
+        color: white;
+        padding: 24px;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 20px rgba(0, 108, 53, 0.2);
+        border: 2px solid #D4AF37;
+    }
+    
+    .main-header h1 {
+        color: #ffffff !important;
+        font-weight: 900 !important;
+        font-size: 26px !important;
+        margin: 0 0 8px 0 !important;
+    }
+    
+    .main-header p {
+        color: #e2e8f0 !important;
+        font-size: 15px !important;
+        margin: 0 !important;
+        font-weight: 600;
+    }
+    
+    .designer-credit-badge {
+        background: rgba(212, 175, 55, 0.15);
+        color: #856404;
+        border: 1px solid #D4AF37;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        margin-top: 15px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -103,10 +106,10 @@ html, body, [class*="css"] {
 ###### ==========================================================
 _header_logo = f'<div class="mh-logo"><img src="{LOGO_SRC}" alt="logo" style="height: 65px; margin-bottom: 6px;"></div>' if LOGO_SRC else ""
 st.markdown(f"""
-<div class="main-header-banner">
+<div class="main-header">
     {_header_logo}
     <h1>📜 نظام إدارة وإصدار شهادات الإشراف الأكاديمي</h1>
-    <p>مدارس الثغر النموذجية الأهلية — إصدار وطباعة شهادات التكريم والدورات التدريبية المعتمدة</p>
+    <p>مدارس الثغر النموذجية الأهلية — تصميم ومعاينة وتصدير الشهادات المجمعة بنقرة واحدة</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -117,7 +120,6 @@ if not LOGO_SRC:
 ###### Supabase Persistence & Local File Database Helper Functions
 ###### ==========================================================
 TEACHERS_FILE = "teachers.json"
-
 INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ محمد سامي السعيد",
     "أ/ علي محمد معوض",
@@ -138,8 +140,6 @@ def get_supabase_credentials():
     """الحصول الفعّال على بيانات الاتصال بـ Supabase بجميع صيغ الأسماء الممكنة في st.secrets و env"""
     url = ""
     key = ""
-    
-    # 1. البحث الشامل داخل st.secrets
     try:
         if hasattr(st, "secrets") and st.secrets is not None:
             url_keys = ["SUPABASE_URL", "supabase_url", "SUPABASE_PROJECT_URL", "URL", "url"]
@@ -183,7 +183,6 @@ def get_supabase_credentials():
     except Exception:
         pass
 
-    # 2. البحث في المتغيرات البيئية كخيار إضافي
     if not url:
         for k in ["SUPABASE_URL", "supabase_url"]:
             if os.getenv(k):
@@ -320,22 +319,20 @@ if "courses_list" not in st.session_state:
         "استراتيجيات التعلم النشط وزيادة مشاركة الطلاب ",
         "الذكاء الاصطناعي في التعلم Notebook LM",
         "أساليب التقويم البديل ",
-         "تصميم أنشطة تعليمية بالذكاء الاصطناعي ",
-         "سلم المهارات "
+        "تصميم أنشطة تعليمية بالذكاء الاصطناعي ",
+        "سلم المهارات "
     ]
 
 if "signatures_list" not in st.session_state:
     st.session_state["signatures_list"] = [
         {"role": "المدير الأكاديمي لمدارس الثغر", "name": "د. ياسين البدراوي"},
-              {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
-       
+        {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
     ]
 
 col_ctrl, col_preview = st.columns([0.75, 2.25])
-
 with col_ctrl:
     st.markdown("### ⚙️ لوحة التحكم والإعدادات")
-    
+
     # مؤشر حالة الربط بقاعدة البيانات (Supabase)
     is_connected, status_detail = check_supabase_connection()
     if is_connected:
@@ -440,7 +437,7 @@ with col_ctrl:
         formatted_date = course_date.strftime("%Y/%m/%d") + " م"
         cert_main_title = "شهادة حضور دورة تدريبية"
         default_body_prefix = "يُسَّر إدارة الإشراف الأكاديمي بمدارس الثغر النموذجية الأهلية منح المعلم"
-        default_body_text = f"شهادة حضور وذلك لاجتيازه بنجاح الدورة التدريبية بعنوان:\n« {selected_course} »\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية معتمدة من إدارة الإشراف الأكاديمي. متمنين له دوام التوفيق والنجاح."
+        default_body_text = f"شهادة حضور وذلك لاجتيازه بنجاح الدورة التدريبية بعنوان:\n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية معتمدة من إدارة الإشراف الأكاديمي. متمنين له دوام التوفيق والنجاح."
     else:
         st.markdown("#### 📖 التخصص / المادة")
         subject_name = st.text_input("المادة / التخصص:", value="تكنولوجيا المعلومات والتعليم الرقمي")
@@ -498,48 +495,387 @@ with col_ctrl:
 ###### ==========================================================
 CERT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap');
-@page { size: A4 landscape; margin: 0; }
-body { margin: 0; padding: 15px; background-color: #eef2f7; font-family: 'Cairo', sans-serif; direction: rtl; text-align: center; color: #0f172a; }
-.page-break { page-break-after: always; break-after: page; margin-bottom: 30px; }
-.certificate-container { width: 980px; height: 650px; margin: 0 auto; background: #ffffff; padding: 20px; box-sizing: border-box; position: relative; border: 14px solid #006C35; outline: 4px solid #D4AF37; outline-offset: -9px; border-radius: 14px; box-shadow: 0 14px 38px rgba(0,0,0,0.14); overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); direction: rtl; }
-.watermark-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: auto; opacity: 0.055; pointer-events: none; z-index: 1; }
-.corner { position: absolute; width: 44px; height: 44px; z-index: 3; border-color: #D4AF37; }
-.corner-tr { top: 16px; right: 16px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 8px 0 0; }
-.corner-tl { top: 16px; left: 16px; border-top: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 8px 0 0 0; }
-.corner-br { bottom: 16px; right: 16px; border-bottom: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 0 8px 0; }
-.corner-bl { bottom: 16px; left: 16px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 8px; }
-.inner-border { border: 2px solid #D4AF37; height: 100%; padding: 12px 26px; box-sizing: border-box; border-radius: 8px; position: relative; z-index: 2; background: rgba(255,255,255,0.88); }
-.saudi-nat-header-bar { height: 5px; background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%); border-radius: 3px; margin-bottom: 8px; }
-.cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #006C35; padding-bottom: 8px; margin-bottom: 8px; direction: rtl; }
-.header-side { font-size: 11.5px; font-weight: 700; color: #1e293b; line-height: 1.5; text-align: right; flex: 1.1; }
-.header-side.left-side { text-align: left; direction: ltr; }
-.saudi-title { color: #006C35; font-weight: 900; font-size: 12.5px; }
-.office-highlight { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #004d25 100%); color: #ffffff; padding: 2px 10px; border-radius: 6px; font-weight: 800; border: 1px solid #D4AF37; font-size: 11px; margin-top: 2px; }
-.logo-box-center { flex: 1.2; text-align: center; display: flex; flex-direction: column; align-items: center; }
-.thaghr-logo-img { height: 70px; width: auto; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
-.dept-sub-badge { display: inline-block; font-size: 11px; color: #ffffff; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); padding: 2px 14px; border-radius: 12px; font-weight: 700; border: 1px solid #D4AF37; }
-.cert-title-badge { display: inline-block; background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); color: #ffffff; font-size: 21px; font-weight: 900; padding: 5px 40px; border-radius: 28px; border: 2px solid #D4AF37; box-shadow: 0 4px 14px rgba(0,108,53,0.25); margin: 2px 0 10px; letter-spacing: 0.5px; }
-.cert-body-box { margin-bottom: 8px; padding: 0 16px; }
-.cert-prefix-text { font-size: 14.5px; font-weight: 700; color: #334155; }
-.teacher-name { font-size: 27px; font-weight: 900; color: #006C35; margin: 4px 0; font-family: 'Amiri', serif; letter-spacing: 0.5px; text-shadow: 1px 1px 0 rgba(212,175,55,0.3); }
-.teacher-name::before, .teacher-name::after { content: " ✦ "; color: #D4AF37; font-size: 16px; vertical-align: middle; }
-.cert-body-text { font-size: 15px; line-height: 1.8; color: #1e293b; font-weight: 600; }
-.signatures-section { display: flex; direction: rtl; flex-direction: row; justify-content: space-between; align-items: flex-start; margin-top: 12px; padding-top: 4px; text-align: center; }
-.signatures-section.single-sig-mode { display: flex; justify-content: center; align-items: flex-start; position: relative; padding: 0 120px; }
-.signatures-section.single-sig-mode .sig-box { margin: 0 auto; }
-.signatures-section.single-sig-mode .school-seal { position: absolute; left: 20px; top: -5px; }
-.sig-box { min-width: 140px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; direction: rtl; }
-.sig-role { font-size: 12px; font-weight: 800; color: #006C35; margin-bottom: 2px; }
-.sig-name { font-size: 13.5px; font-weight: 800; color: #0f172a; margin-top: 0px; margin-bottom: 4px; }
-.sig-img-container { height: 40px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
-.digital-signature-img { max-height: 38px; width: auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
-.school-seal { display: flex; flex-direction: column; align-items: center; margin: 0 8px; }
-.seal-ring { position: relative; width: 114px; height: 114px; border-radius: 50%; border: 3px double #006C35; box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4); display: flex; align-items: center; justify-content: center; background: #ffffff; transform: rotate(-3deg); }
-.seal-logo-img { width: 50px; height: auto; opacity: 0.92; }
-.seal-caption { margin-top: 3px; font-size: 9px; font-weight: 800; color: #006C35; }
-.cert-footer-date { position: absolute; bottom: 8px; right: 28px; font-size: 10.5px; color: #64748b; font-weight: 700; }
-.cert-footer-serial { position: absolute; bottom: 8px; left: 28px; font-size: 10.5px; color: #64748b; font-weight: 700; direction: ltr; }
-@media print { body { background: none; padding: 0; } .page-break { margin-bottom: 0; } .certificate-container { box-shadow: none; width: 100%; max-width: 1000px; border-radius: 0; } }
+
+@page {
+    size: A4 landscape;
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    padding: 15px;
+    background-color: #eef2f7;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    text-align: center;
+    color: #0f172a;
+}
+
+.page-break {
+    page-break-after: always;
+    break-after: page;
+    margin-bottom: 30px;
+}
+
+.certificate-container {
+    width: 980px;
+    height: 650px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    border: 14px solid #006C35;
+    outline: 4px solid #D4AF37;
+    outline-offset: -9px;
+    border-radius: 14px;
+    box-shadow: 0 14px 38px rgba(0,0,0,0.14);
+    overflow: hidden;
+    background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%);
+    direction: rtl;
+}
+
+.watermark-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 440px;
+    height: auto;
+    opacity: 0.055;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.corner {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    z-index: 3;
+    border-color: #D4AF37;
+}
+
+.corner-tr {
+    top: 16px;
+    right: 16px;
+    border-top: 3px solid #D4AF37;
+    border-right: 3px solid #D4AF37;
+    border-radius: 0 8px 0 0;
+}
+
+.corner-tl {
+    top: 16px;
+    left: 16px;
+    border-top: 3px solid #D4AF37;
+    border-left: 3px solid #D4AF37;
+    border-radius: 8px 0 0 0;
+}
+
+.corner-br {
+    bottom: 16px;
+    right: 16px;
+    border-bottom: 3px solid #D4AF37;
+    border-right: 3px solid #D4AF37;
+    border-radius: 0 0 8px 0;
+}
+
+.corner-bl {
+    bottom: 16px;
+    left: 16px;
+    border-bottom: 3px solid #D4AF37;
+    border-left: 3px solid #D4AF37;
+    border-radius: 0 0 0 8px;
+}
+
+.inner-border {
+    border: 2px solid #D4AF37;
+    height: 100%;
+    padding: 12px 26px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    position: relative;
+    z-index: 2;
+    background: rgba(255,255,255,0.88);
+}
+
+.saudi-nat-header-bar {
+    height: 5px;
+    background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%);
+    border-radius: 3px;
+    margin-bottom: 8px;
+}
+
+.cert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #006C35;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    direction: rtl;
+}
+
+.header-side {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.5;
+    text-align: right;
+    flex: 1.1;
+}
+
+.header-side.left-side {
+    text-align: left;
+    direction: ltr;
+}
+
+.saudi-title {
+    color: #006C35;
+    font-weight: 900;
+    font-size: 12.5px;
+}
+
+.office-highlight {
+    display: inline-block;
+    background: linear-gradient(135deg, #006C35 0%, #004d25 100%);
+    color: #ffffff;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-weight: 800;
+    border: 1px solid #D4AF37;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.logo-box-center {
+    flex: 1.2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.thaghr-logo-img {
+    height: 70px;
+    width: auto;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+}
+
+.dept-sub-badge {
+    display: inline-block;
+    font-size: 11px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+    padding: 2px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    border: 1px solid #D4AF37;
+}
+
+.cert-title-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%);
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 900;
+    padding: 5px 40px;
+    border-radius: 28px;
+    border: 2px solid #D4AF37;
+    box-shadow: 0 4px 14px rgba(0,108,53,0.25);
+    margin: 2px 0 10px;
+    letter-spacing: 0.5px;
+}
+
+.cert-body-box {
+    margin-bottom: 8px;
+    padding: 0 16px;
+}
+
+.cert-prefix-text {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.teacher-name {
+    font-size: 27px;
+    font-weight: 900;
+    color: #006C35;
+    margin: 4px 0;
+    font-family: 'Amiri', serif;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 0 rgba(212,175,55,0.3);
+}
+
+.teacher-name::before, .teacher-name::after {
+    content: " ✦ ";
+    color: #D4AF37;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.course-name {
+    font-size: 24px;
+    font-weight: 900;
+    color: #006C35;
+    margin: 6px 0;
+    font-family: 'Amiri', serif;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 0 rgba(212,175,55,0.3);
+    display: block;
+}
+
+.course-name::before, .course-name::after {
+    content: " ✦ ";
+    color: #D4AF37;
+    font-size: 15px;
+    vertical-align: middle;
+}
+
+.cert-body-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.signatures-section {
+    display: flex;
+    direction: rtl;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 12px;
+    padding-top: 4px;
+    text-align: center;
+}
+
+.signatures-section.single-sig-mode {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    padding: 0 120px;
+}
+
+.signatures-section.single-sig-mode .sig-box {
+    margin: 0 auto;
+}
+
+.signatures-section.single-sig-mode .school-seal {
+    position: absolute;
+    left: 20px;
+    top: -5px;
+}
+
+.sig-box {
+    min-width: 140px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    direction: rtl;
+}
+
+.sig-role {
+    font-size: 12px;
+    font-weight: 800;
+    color: #006C35;
+    margin-bottom: 2px;
+}
+
+.sig-name {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 0px;
+    margin-bottom: 4px;
+}
+
+.sig-img-container {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.digital-signature-img {
+    max-height: 38px;
+    width: auto;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+}
+
+.school-seal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 8px;
+}
+
+.seal-ring {
+    position: relative;
+    width: 114px;
+    height: 114px;
+    border-radius: 50%;
+    border: 3px double #006C35;
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    transform: rotate(-3deg);
+}
+
+.seal-logo-img {
+    width: 50px;
+    height: auto;
+    opacity: 0.92;
+}
+
+.seal-caption {
+    margin-top: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #006C35;
+}
+
+.cert-footer-date {
+    position: absolute;
+    bottom: 8px;
+    right: 28px;
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.cert-footer-serial {
+    position: absolute;
+    bottom: 8px;
+    left: 28px;
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 700;
+    direction: ltr;
+}
+
+@media print {
+    body {
+        background: none;
+        padding: 0;
+    }
+    .page-break {
+        margin-bottom: 0;
+    }
+    .certificate-container {
+        box-shadow: none;
+        width: 100%;
+        max-width: 1000px;
+        border-radius: 0;
+    }
+}
 """
 
 ###### ==========================================================
@@ -643,7 +979,7 @@ def build_full_certificates_document_html(teachers_list):
     for idx, t_name in enumerate(teachers_list):
         page_break_class = "page-break" if idx < len(teachers_list) - 1 else ""
         single_certs_html += f'<div class="{page_break_class}">{build_certificate_single_html(t_name)}</div>'
-
+    
     css = CERT_CSS
     full_html = (
         '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">'
@@ -696,7 +1032,7 @@ with col_preview:
     if not selected_teachers:
         st.warning("⚠️ يرجى اختيار معلم واحد على الأقل من القائمة لتوليد الشهادات.")
     else:
-        st.markdown(f"  **عدد المعلمين المحدد لإصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**  ")
+        st.markdown(f"   **عدد المعلمين المحدد لإصدار شهاداتهم حالياً: ({len(selected_teachers)} معلم)**   ")
 
         preview_tabs = st.tabs([f"📜 شهادة: {t}" for t in selected_teachers[:6]])
         for idx, tab_teacher in enumerate(selected_teachers[:6]):
