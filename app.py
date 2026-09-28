@@ -132,7 +132,7 @@ INTERMEDIATE_TEACHERS_FROM_SOURCE = [
     "أ/ إبراهيم علي العتيبي",
     "أ/ عيسى خالد العويس",
     "أ/ زيد بن علي التميمي",
-    "أ/ أحمد سلامة"
+   
 ]
 
 def get_supabase_credentials():
@@ -326,10 +326,8 @@ if "courses_list" not in st.session_state:
 if "signatures_list" not in st.session_state:
     st.session_state["signatures_list"] = [
         {"role": "المدير الأكاديمي لمدارس الثغر", "name": "د. ياسين البدراوي"},
-        {"role": "مدير المدرسة", "name": "أ. إبراهيم بن موسى التميمي"},
-        {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
-        {"role": "وكيل الشؤون التعليمية", "name": "أ. محمد مبروك السيد"},
-        {"role": "وكيل شؤون الطلاب", "name": "أ. صالح بن عبدالله الدعجاني"}
+              {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
+       
     ]
 
 col_ctrl, col_preview = st.columns([0.75, 2.25])
