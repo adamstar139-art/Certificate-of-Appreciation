@@ -437,7 +437,7 @@ with col_ctrl:
         formatted_date = course_date.strftime("%Y/%m/%d") + " م"
         cert_main_title = "شهادة حضور دورة تدريبية"
         default_body_prefix = "تشهد مدارس الثغر النموذجية الأهلية أن الأستاذ/"
-        default_body_text = f"قد حضر برنامجا تدريبيا بعنوان/ :\n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية وعليه مُنح هذه الشهادة متمنين له دوام التوفيق ."
+        default_body_text = f"قد حضر برنامجا تدريبيا بعنوان/ \n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية وعليه مُنح هذه الشهادة متمنين له دوام التوفيق ."
     else:
         st.markdown("#### 📖 التخصص / المادة")
         subject_name = st.text_input("المادة / التخصص:", value="تكنولوجيا المعلومات والتعليم الرقمي")
