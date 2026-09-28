@@ -326,7 +326,7 @@ if "courses_list" not in st.session_state:
 if "signatures_list" not in st.session_state:
     st.session_state["signatures_list"] = [
         {"role": "المدير الأكاديمي لمدارس الثغر", "name": "د. ياسين البدراوي"},
-        {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى"},
+        {"role": "مشرف المرحلة الابتدائية", "name": "أ. محمد مصطفى أبو سنة"},
     ]
 
 col_ctrl, col_preview = st.columns([0.75, 2.25])
@@ -436,8 +436,8 @@ with col_ctrl:
         course_date = st.date_input("تاريخ انعقاد الدورة:", value=datetime.date.today())
         formatted_date = course_date.strftime("%Y/%m/%d") + " م"
         cert_main_title = "شهادة حضور دورة تدريبية"
-        default_body_prefix = "يُسَّر إدارة الإشراف الأكاديمي بمدارس الثغر النموذجية الأهلية منح المعلم"
-        default_body_text = f"شهادة حضور وذلك لاجتيازه بنجاح الدورة التدريبية بعنوان:\n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية معتمدة من إدارة الإشراف الأكاديمي. متمنين له دوام التوفيق والنجاح."
+        default_body_prefix = "تشهد مدارس الثغر النموذجية الأهلية أن الأستاذ/"
+        default_body_text = f"قد حضر برنامجا تدريبيا بعنوان/ :\n<span class=\"course-name\">« {selected_course} »</span>\nوالتي عقدت بتاريخ {formatted_date} بواقع ({course_hours}) ساعات تدريبية وعليه مُنح هذه الشهادة متمنين له دوام التوفيق ."
     else:
         st.markdown("#### 📖 التخصص / المادة")
         subject_name = st.text_input("المادة / التخصص:", value="تكنولوجيا المعلومات والتعليم الرقمي")
