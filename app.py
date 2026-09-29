@@ -665,7 +665,7 @@ html, body {
 }
 
 .cert-prefix-text { 
-    font-size: 16px; 
+    font-size: 20px; 
     font-weight: 700; 
     color: #334155; 
 }
@@ -704,7 +704,7 @@ html, body {
 }
 
 .cert-body-text { 
-    font-size: 16.5px; 
+    font-size: 21.5px; 
     line-height: 1.7; 
     color: #1e293b; 
     font-weight: 600; 
@@ -915,7 +915,8 @@ def build_certificate_single_html(teacher_name):
             </table>
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
-                  </div>
+            <div class="cert-footer-serial">الرقم التسلسلي: THG-{formatted_date.replace("-", "")}-001</div>
+        </div>
     </div>
     '''
 
