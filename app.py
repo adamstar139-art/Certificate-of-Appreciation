@@ -970,7 +970,6 @@ def build_certificate_single_html(teacher_name):
             {signatures_table_html}
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
-            <div class="cert-footer-serial">الرقم التسلسلي: THG-{formatted_date.replace("-", "")}-001</div>
         </div>
     </div>
     '''
