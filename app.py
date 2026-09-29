@@ -494,38 +494,45 @@ CERT_CSS = """
     margin: 0; 
 }
 
-body { 
-    margin: 0; 
-    padding: 15px; 
-    background-color: #eef2f7; 
-    font-family: 'Cairo', sans-serif; 
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+html, body { 
+    width: 100% !important; 
+    height: 100% !important; 
+    margin: 0 !important; 
+    padding: 0 !important; 
+    background-color: #ffffff; 
+    font-family: 'Cairo', 'Amiri', 'Traditional Arabic', 'Tahoma', sans-serif; 
     direction: rtl; 
     text-align: center; 
     color: #0f172a; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+    overflow: hidden; 
 }
 
 .page-break { 
     page-break-after: always; 
     break-after: page; 
-    margin-bottom: 30px; 
+    margin: 0 !important; 
+    padding: 0 !important; 
 }
 
 .certificate-container { 
-    width: 980px; 
-    height: 650px; 
-    margin: 0 auto; 
+    width: 100% !important; 
+    height: 100% !important; 
+    margin: 0 !important; 
     background: #ffffff; 
-    padding: 20px; 
-    box-sizing: border-box; 
+    padding: 12px; 
     position: relative; 
-    border: 14px solid #006C35; 
+    border: 12px solid #006C35; 
     outline: 4px solid #D4AF37; 
-    outline-offset: -9px; 
-    border-radius: 14px; 
-    box-shadow: 0 14px 38px rgba(0,0,0,0.14); 
-    overflow: hidden; 
+    outline-offset: -8px; 
     background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #fbfdfe 60%, #f3f7f5 100%); 
     direction: rtl; 
+    box-shadow: none; 
 }
 
 .watermark-logo { 
@@ -533,106 +540,106 @@ body {
     top: 50%; 
     left: 50%; 
     transform: translate(-50%, -50%); 
-    width: 440px; 
-    height: auto; 
-    opacity: 0.055; 
+    width: 320px; 
+    opacity: 0.05; 
     pointer-events: none; 
     z-index: 1; 
 }
 
 .corner { 
     position: absolute; 
-    width: 44px; 
-    height: 44px; 
-    z-index: 3; 
-    border-color: #D4AF37; 
+    width: 24px; 
+    height: 24px; 
+    z-index: 5; 
 }
-.corner-tr { top: 16px; right: 16px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 8px 0 0; }
-.corner-tl { top: 16px; left: 16px; border-top: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 8px 0 0 0; }
-.corner-br { bottom: 16px; right: 16px; border-bottom: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 0 8px 0; }
-.corner-bl { bottom: 16px; left: 16px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 8px; }
+.corner-tr { top: 12px; right: 12px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 6px 0 0; }
+.corner-tl { top: 12px; left: 12px; border-top: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 6px 0 0 0; }
+.corner-br { bottom: 12px; right: 12px; border-bottom: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 0 6px 0; }
+.corner-bl { bottom: 12px; left: 12px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 6px; }
 
 .inner-border { 
     border: 2px solid #D4AF37; 
     height: 100%; 
-    padding: 12px 26px; 
-    box-sizing: border-box; 
-    border-radius: 8px; 
+    width: 100%; 
+    padding: 12px 20px 24px 20px; 
+    border-radius: 6px; 
     position: relative; 
     z-index: 2; 
     background: rgba(255,255,255,0.88); 
 }
 
 .saudi-nat-header-bar { 
-    height: 5px; 
+    height: 4px; 
     background: linear-gradient(90deg, #006C35 0%, #004d25 35%, #D4AF37 50%, #004d25 65%, #006C35 100%); 
-    border-radius: 3px; 
-    margin-bottom: 8px; 
+    border-radius: 2px; 
+    margin-bottom: 6px; 
 }
 
-.cert-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+.cert-header-table { 
+    width: 100%; 
     border-bottom: 2px solid #006C35; 
-    padding-bottom: 8px; 
+    padding-bottom: 6px; 
     margin-bottom: 8px; 
-    direction: rtl; 
 }
 
-.header-side {
-    font-size: 14px; 
+.header-side-rtl { 
+    font-size: 13px; 
     font-weight: 700; 
     color: #1e293b; 
-    line-height: 1.5; 
+    line-height: 1.4; 
     text-align: right; 
-    flex: 1.1; 
+    width: 32%; 
+    vertical-align: middle; 
 }
 
-.header-side.left-side { 
+.header-side-ltr { 
+    font-size: 13px; 
+    font-weight: 700; 
+    color: #1e293b; 
+    line-height: 1.4; 
     text-align: left; 
+    width: 32%; 
     direction: ltr; 
+    vertical-align: middle; 
 }
 
-.saudi-title {
-    color: #006C35;
-    font-weight: 900;
-    font-size: 15.5px; 
+.logo-box-center { 
+    text-align: center; 
+    width: 36%; 
+    vertical-align: middle; 
+}
+
+.saudi-title { 
+    color: #006C35; 
+    font-weight: 900; 
+    font-size: 14.5px; 
 }
 
 .office-highlight { 
     display: inline-block; 
     background: linear-gradient(135deg, #006C35 0%, #004d25 100%); 
     color: #ffffff; 
-    padding: 2px 10px; 
-    border-radius: 6px; 
+    padding: 2px 8px; 
+    border-radius: 5px; 
     font-weight: 800; 
     border: 1px solid #D4AF37; 
-    font-size: 13px; 
+    font-size: 12px; 
     margin-top: 2px; 
 }
 
-.logo-box-center { 
-    flex: 1.2; 
-    text-align: center; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-}
-
 .thaghr-logo-img { 
-    height: 70px; 
+    height: 65px; 
     width: auto; 
-    margin-bottom: 4px; 
+    margin-bottom: 2px; 
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); 
 }
 
 .dept-sub-badge { 
     display: inline-block; 
-    font-size: 13.5px; 
+    font-size: 13px; 
     color: #ffffff; 
     background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); 
-    padding: 2px 14px; 
+    padding: 3px 16px; 
     border-radius: 12px; 
     font-weight: 700; 
     border: 1px solid #D4AF37; 
@@ -642,125 +649,93 @@ body {
     display: inline-block; 
     background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); 
     color: #ffffff; 
-    font-size: 26px; 
+    font-size: 24px; 
     font-weight: 900; 
-    padding: 6px 48px; 
-    border-radius: 28px; 
+    padding: 5px 44px; 
+    border-radius: 26px; 
     border: 2px solid #D4AF37; 
-    box-shadow: 0 4px 14px rgba(0,108,53,0.25); 
-    margin: 2px 0 10px; 
+    box-shadow: 0 4px 12px rgba(0,108,53,0.22); 
+    margin: 4px auto 8px; 
     letter-spacing: 0.5px; 
 }
 
 .cert-body-box { 
-    margin-bottom: 8px; 
+    margin-bottom: 6px; 
     padding: 0 16px; 
 }
 
-.cert-prefix-text {
-    font-size: 17.5px; 
+.cert-prefix-text { 
+    font-size: 16px; 
     font-weight: 700; 
     color: #334155; 
 }
 
 .teacher-name { 
-    font-size: 33px; 
-    font-weight: 900; 
-    color: #006C35; 
-    margin: 4px 0; 
-    font-family: 'Amiri', serif; 
-    letter-spacing: 0.5px; 
-    text-shadow: 1px 1px 0 rgba(212,175,55,0.3); 
-}
-
-.teacher-name::before, .teacher-name::after { 
-    content: " ✦ "; 
-    color: #D4AF37; 
-    font-size: 20px; 
-    vertical-align: middle; 
-}
-
-.course-name { 
     font-size: 29px; 
     font-weight: 900; 
     color: #006C35; 
-    margin: 6px 0; 
-    font-family: 'Amiri', serif; 
+    margin: 4px 0; 
+    font-family: 'Amiri', 'Traditional Arabic', serif; 
     letter-spacing: 0.5px; 
-    text-shadow: 1px 1px 0 rgba(212,175,55,0.3); 
-    display: block; 
 }
 
-.course-name::before, .course-name::after { 
+.teacher-name::before, .teacher-name::after { 
     content: " ✦ "; 
     color: #D4AF37; 
     font-size: 18px; 
     vertical-align: middle; 
 }
 
-.cert-body-text {
-    font-size: 18px;
-    line-height: 1.85; 
+.course-name { 
+    font-size: 25px; 
+    font-weight: 900; 
+    color: #006C35; 
+    margin: 4px 0; 
+    font-family: 'Amiri', 'Traditional Arabic', serif; 
+    letter-spacing: 0.5px; 
+    display: block; 
+}
+
+.course-name::before, .course-name::after { 
+    content: " ✦ "; 
+    color: #D4AF37; 
+    font-size: 16px; 
+    vertical-align: middle; 
+}
+
+.cert-body-text { 
+    font-size: 16.5px; 
+    line-height: 1.7; 
     color: #1e293b; 
     font-weight: 600; 
 }
 
-.signatures-section { 
-    display: flex; 
+.signatures-table { 
+    width: 100%; 
+    margin-top: 10px; 
     direction: rtl; 
-    flex-direction: row; 
-    justify-content: space-between; 
-    align-items: flex-start; 
-    margin-top: 12px; 
-    padding-top: 4px; 
+}
+
+.sig-td { 
     text-align: center; 
-}
-
-.signatures-section.single-sig-mode { 
-    display: flex; 
-    justify-content: center; 
-    align-items: flex-start; 
-    position: relative; 
-    padding: 0 120px; 
-}
-
-.signatures-section.single-sig-mode .sig-box { 
-    margin: 0 auto; 
-}
-
-.signatures-section.single-sig-mode .school-seal { 
-    position: absolute; 
-    left: 20px; 
-    top: -5px; 
-}
-
-.sig-box { 
-    min-width: 140px; 
-    text-align: center; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: flex-start; 
-    direction: rtl; 
+    vertical-align: top; 
 }
 
 .sig-role { 
-    font-size: 15px; 
+    font-size: 14px; 
     font-weight: 800; 
     color: #006C35; 
     margin-bottom: 2px; 
 }
 
 .sig-name { 
-    font-size: 17px; 
+    font-size: 16px; 
     font-weight: 800; 
     color: #0f172a; 
-    margin-top: 0px; 
-    margin-bottom: 4px; 
 }
 
 .sig-img-container { 
-    height: 40px; 
+    height: 38px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -768,7 +743,7 @@ body {
 }
 
 .digital-signature-img { 
-    max-height: 38px; 
+    max-height: 36px; 
     width: auto; 
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); 
 }
@@ -777,32 +752,32 @@ body {
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    margin: 0 8px; 
+    margin: 0 auto; 
 }
 
 .seal-ring { 
     position: relative; 
-    width: 114px; 
-    height: 114px; 
+    width: 95px; 
+    height: 95px; 
     border-radius: 50%; 
     border: 3px double #006C35; 
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4); 
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.35), inset 0 0 0 2px rgba(212,175,55,0.4); 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     background: #ffffff; 
-    transform: rotate(-3deg); 
+    margin: 0 auto; 
 }
 
 .seal-logo-img { 
-    width: 50px; 
+    width: 42px; 
     height: auto; 
     opacity: 0.92; 
 }
 
 .seal-caption { 
-    margin-top: 3px; 
-    font-size: 10.5px; 
+    margin-top: 2px; 
+    font-size: 9.5px; 
     font-weight: 800; 
     color: #006C35; 
 }
@@ -810,8 +785,8 @@ body {
 .cert-footer-date { 
     position: absolute; 
     bottom: 8px; 
-    right: 28px; 
-    font-size: 13px; 
+    right: 24px; 
+    font-size: 11.5px; 
     color: #64748b; 
     font-weight: 700; 
 }
@@ -819,42 +794,26 @@ body {
 .cert-footer-serial { 
     position: absolute; 
     bottom: 8px; 
-    left: 28px; 
-    font-size: 13px; 
+    left: 24px; 
+    font-size: 11.5px; 
     color: #64748b; 
     font-weight: 700; 
     direction: ltr; 
 }
 
-/* ==========================================================
-   إعدادات الطباعة بحجم A4 كامل وبدون هوامش
-   ========================================================== */
 @media print {
     html, body {
-        width: 297mm;
-        height: 210mm;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: none !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-
-    .page-break {
-        page-break-after: always;
-        break-after: page;
+        width: 100% !important;
+        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-
     .certificate-container {
-        width: 297mm !important;
-        height: 210mm !important;
-        max-width: none !important;
+        width: 100% !important;
+        height: 100% !important;
         margin: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        box-sizing: border-box !important;
         page-break-inside: avoid;
     }
 }
@@ -864,27 +823,51 @@ body {
 ###### 8. Single Certificate HTML Generator
 ###### ==========================================================
 def build_certificate_single_html(teacher_name):
-    sigs_html = ""
+    sigs_tds = ""
     for sig in chosen_signatures:
         sig_img_html = f'<div class="sig-img-container"><img src="{digital_sig_src}" class="digital-signature-img" alt="signature"></div>' if enable_digital_sig else '<div class="sig-img-container"></div>'
-        sigs_html += f'''
-        <div class="sig-box">
+        sigs_tds += f'''
+        <td class="sig-td">
             <div class="sig-role">{sig['role']}</div>
             <div class="sig-name">{sig['name']}</div>
             {sig_img_html}
-        </div>'''
+        </td>'''
 
-    sig_section_class = "signatures-section single-sig-mode" if len(chosen_signatures) == 1 else "signatures-section"
+    watermark_html = f'<img class="watermark-logo" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
+    header_logo_html = f'<img class="thaghr-logo-img" src="{LOGO_SRC}" alt="logo">' if LOGO_SRC else ""
+    seal_logo_html = f'<img class="seal-logo-img" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
+
+    seal_td_html = f'''
+    <td class="sig-td">
+        <div class="school-seal">
+            <div class="seal-ring">
+                {seal_logo_html}
+                <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                    <defs>
+                        <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
+                        <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
+                    </defs>
+                    <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
+                        <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
+                            ✦ مدارس الثغر ✦
+                        </textPath>
+                    </text>
+                    <text font-size="8.5" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
+                        <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
+                            الإشراف الأكاديمي
+                        </textPath>
+                    </text>
+                </svg>
+            </div>
+            <div class="seal-caption">ختم معتمد</div>
+        </div>
+    </td>'''
 
     body_text_html = cert_custom_text.replace("\n", "<br>")
     body_html = f'''
     <div class="cert-prefix-text">{cert_custom_prefix}</div>
     <div class="teacher-name">{teacher_name}</div>
     <div class="cert-body-text">{body_text_html}</div>'''
-
-    watermark_html = f'<img class="watermark-logo" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
-    header_logo_html = f'<img class="thaghr-logo-img" src="{LOGO_SRC}" alt="logo">' if LOGO_SRC else ""
-    seal_logo_html = f'<img class="seal-logo-img" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
 
     return f'''
     <div class="certificate-container">
@@ -896,24 +879,27 @@ def build_certificate_single_html(teacher_name):
 
         <div class="inner-border">
             <div class="saudi-nat-header-bar"></div>
-            <div class="cert-header">
-                <div class="header-side">
-                    <span class="saudi-title">المملكة العربية السعودية</span><br>
-                    وزارة التعليم<br>
-                    إدارة التعليم بمنطقة الرياض<br>
-                    <span class="office-highlight">مكتب التعليم الخاص</span>
-                </div>
-                <div class="logo-box-center">
-                    {header_logo_html}
-                    <div class="dept-sub-badge">إدارة الإشراف الأكاديمي - {selected_dept}</div>
-                </div>
-                <div class="header-side left-side">
-                    Kingdom of Saudi Arabia<br>
-                    Ministry of Education<br>
-                    Riyadh Education Directorate<br>
-                    <strong>Private Education Office</strong>
-                </div>
-            </div>
+            
+            <table class="cert-header-table">
+                <tr>
+                    <td class="header-side-rtl">
+                        <span class="saudi-title">المملكة العربية السعودية</span><br>
+                        وزارة التعليم<br>
+                        إدارة التعليم بمنطقة الرياض<br>
+                        <span class="office-highlight">مكتب التعليم الخاص</span>
+                    </td>
+                    <td class="logo-box-center">
+                        {header_logo_html}<br>
+                        <div class="dept-sub-badge">إدارة الإشراف الأكاديمي - {selected_dept}</div>
+                    </td>
+                    <td class="header-side-ltr">
+                        Kingdom of Saudi Arabia<br>
+                        Ministry of Education<br>
+                        Riyadh Education Directorate<br>
+                        <strong>Private Education Office</strong>
+                    </td>
+                </tr>
+            </table>
 
             <div class="cert-title-badge">{cert_main_title}</div>
 
@@ -921,33 +907,15 @@ def build_certificate_single_html(teacher_name):
                 {body_html}
             </div>
 
-            <div class="{sig_section_class}">
-                {sigs_html}
-                <div class="school-seal">
-                    <div class="seal-ring">
-                        {seal_logo_html}
-                        <svg viewBox="0 0 120 120" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                            <defs>
-                                <path id="textArcTop" d="M 15,60 A 45,45 0 0,1 105,60" fill="none"/>
-                                <path id="textArcBottom" d="M 105,60 A 43,43 0 0,1 15,60" fill="none"/>
-                            </defs>
-                            <text font-size="9" font-weight="800" fill="#006C35" letter-spacing="0.5">
-                                <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
-                                    ✦ مدارس الثغر ✦
-                                </textPath>
-                            </text>
-                            <text font-size="8.5" font-weight="700" fill="#0B2A4A" letter-spacing="0.5">
-                                <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
-                                    الإشراف الأكاديمي
-                                </textPath>
-                            </text>
-                        </svg>
-                    </div>
-                    <div class="seal-caption">ختم معتمد</div>
-                </div>
-            </div>
+            <table class="signatures-table">
+                <tr>
+                    {sigs_tds}
+                    {seal_td_html}
+                </tr>
+            </table>
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
+            <div class="cert-footer-serial">الرقم التسلسلي: THG-{formatted_date.replace("-", "")}-001</div>
         </div>
     </div>
     '''
@@ -988,6 +956,8 @@ def generate_pdf_bytes(html_content):
             "-O", "Landscape",
             "-s", "A4",
             "-T", "0", "-B", "0", "-L", "0", "-R", "0",
+            "--page-width", "297mm",
+            "--page-height", "210mm",
             temp_html,
             temp_pdf
         ]
@@ -1001,8 +971,8 @@ def generate_pdf_bytes(html_content):
             except Exception:
                 pass
             return pdf_data
-    except Exception:
-        pass
+    except Exception as e:
+        st.error(f"حدث خطأ أثناء تصدير الـ PDF: {e}")
     return None
 
 ###### ==========================================================
