@@ -704,7 +704,7 @@ html, body {
 }
 
 .cert-body-text { 
-    font-size: 21.5px; 
+    font-size: 24.5px; 
     line-height: 1.7; 
     color: #1e293b; 
     font-weight: 600; 
@@ -712,7 +712,7 @@ html, body {
 
 .signatures-table { 
     width: 100%; 
-    margin-top: 10px; 
+    margin-top: 28px; 
     direction: rtl; 
 }
 
