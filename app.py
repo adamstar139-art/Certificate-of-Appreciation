@@ -510,7 +510,7 @@ html, body {
     color: #0f172a; 
     -webkit-print-color-adjust: exact !important; 
     print-color-adjust: exact !important; 
-    overflow: hidden; 
+    /* overflow: hidden; */ 
 }
 
 .page-break { 
@@ -801,19 +801,55 @@ html, body {
     direction: ltr; 
 }
 
+
+.cert-page-wrapper {
+    width: 297mm;
+    height: 210mm;
+    box-sizing: border-box;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 auto 30px auto;
+    overflow: hidden;
+    position: relative;
+    background: #ffffff;
+}
+
 @media print {
+    .no-print {
+        display: none !important;
+    }
     html, body {
-        width: 100% !important;
-        height: 100% !important;
+        width: 297mm !important;
+        height: 210mm !important;
         margin: 0 !important;
         padding: 0 !important;
+        background: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
+
+    .cert-page-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 297mm !important;
+        height: 210mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+    }
+
     .certificate-container {
-        width: 100% !important;
-        height: 100% !important;
+        width: 297mm !important;
+        height: 210mm !important;
+        max-width: none !important;
         margin: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        box-sizing: border-box !important;
         page-break-inside: avoid;
     }
 }
@@ -915,7 +951,7 @@ def build_certificate_single_html(teacher_name):
             </table>
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
-          
+            <div class="cert-footer-serial">الرقم التسلسلي: THG-{formatted_date.replace("-", "")}-001</div>
         </div>
     </div>
     '''
@@ -926,21 +962,51 @@ def build_certificate_single_html(teacher_name):
 def build_full_certificates_document_html(teachers_list):
     single_certs_html = ""
     for idx, t_name in enumerate(teachers_list):
-        page_break_class = "page-break" if idx < len(teachers_list) - 1 else ""
-        single_certs_html += f'<div class="{page_break_class}">{build_certificate_single_html(t_name)}</div>'
+        single_certs_html += f'<div class="cert-page-wrapper">{build_certificate_single_html(t_name)}</div>'
     
+    teachers_count = len(teachers_list)
+    print_toolbar = f'''
+    <div class="no-print" style="position: sticky; top: 0; z-index: 9999; background: #006C35; color: white; padding: 12px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: 'Cairo', sans-serif; margin-bottom: 20px;">
+        <span style="font-size: 16px; font-weight: bold; margin-left: 15px;">📜 العرض المجمع للشهادات - عدد المعلمين ({teachers_count})</span>
+        <button onclick="window.print()" style="background: #D4AF37; color: #006C35; font-size: 16px; font-weight: 800; padding: 8px 24px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+            🖨️ طباعة كافة الشهادات A4 (Ctrl + P) / حفظ كـ PDF
+        </button>
+    </div>
+    '''
+
     css = CERT_CSS
     full_html = (
         '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">'
         f'<title>{cert_main_title} - مدارس الثغر النموذجية الأهلية</title>'
-        f'<style>{css}</style></head><body>{single_certs_html}</body></html>'
+        f'<style>{css}</style></head><body>{print_toolbar}{single_certs_html}</body></html>'
     )
     return full_html
 
 ###### ==========================================================
 ###### 10. PDF File Generator Helper Function (Safe Temp Directory)
 ###### ==========================================================
+def find_wkhtmltopdf_binary():
+    import shutil
+    p = shutil.which("wkhtmltopdf")
+    if p:
+        return p
+    common_paths = [
+        "/usr/bin/wkhtmltopdf",
+        "/usr/local/bin/wkhtmltopdf",
+        r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe",
+        r"C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe",
+        os.path.expanduser(r"~\AppData\Local\Programs\wkhtmltopdf\bin\wkhtmltopdf.exe"),
+    ]
+    for path in common_paths:
+        if os.path.exists(path):
+            return path
+    return None
+
 def generate_pdf_bytes(html_content):
+    wkhtmltopdf_bin = find_wkhtmltopdf_binary()
+    if not wkhtmltopdf_bin:
+        return None, "لم يتم العثور على أداة wkhtmltopdf مثبتة على النظام."
+
     try:
         temp_dir = tempfile.gettempdir()
         temp_html = os.path.join(temp_dir, f"temp_certs_{os.getpid()}.html")
@@ -950,14 +1016,12 @@ def generate_pdf_bytes(html_content):
             f.write(html_content)
 
         cmd = [
-            "wkhtmltopdf",
+            wkhtmltopdf_bin,
             "--quiet",
             "--enable-local-file-access",
             "-O", "Landscape",
             "-s", "A4",
             "-T", "0", "-B", "0", "-L", "0", "-R", "0",
-            "--page-width", "297mm",
-            "--page-height", "210mm",
             temp_html,
             temp_pdf
         ]
@@ -970,10 +1034,12 @@ def generate_pdf_bytes(html_content):
                 os.remove(temp_pdf)
             except Exception:
                 pass
-            return pdf_data
+            return pdf_data, None
+        else:
+            err_msg = res.stderr.decode('utf-8', errors='ignore') if res.stderr else "فشل توليد ملف PDF."
+            return None, f"خطأ من أداة wkhtmltopdf: {err_msg}"
     except Exception as e:
-        st.error(f"حدث خطأ أثناء تصدير الـ PDF: {e}")
-    return None
+        return None, f"خطأ أثناء التوصيل مع wkhtmltopdf: {e}" 
 
 ###### ==========================================================
 ###### 11. Live Preview & PDF/HTML Export UI
@@ -1002,7 +1068,7 @@ with col_preview:
 
         with col_pdf:
             st.markdown("#### 📄 تصدير الشهادات كـ PDF")
-            pdf_bytes = generate_pdf_bytes(full_batch_html)
+            pdf_bytes, pdf_err = generate_pdf_bytes(full_batch_html)
             if pdf_bytes:
                 st.download_button(
                     label=f"📥 📄 تحميل شهادات جميع المعلمين ({len(selected_teachers)}) كـ ملف PDF مباشر",
@@ -1012,7 +1078,14 @@ with col_preview:
                     use_container_width=True
                 )
             else:
-                st.info("ℹ️ خيار التنزيل المباشر كـ PDF يعمل عند تثبيت أداة wkhtmltopdf، ويمكنك استخدام خيار الطباعة المباشرة أدناه للتنزيل كـ PDF فوراً.")
+                st.warning("⚠️ **تنبيه حول تصدير الـ PDF المباشر السيرفري:**")
+                st.info(
+                    "يتطلب التنزيل المباشر لملف الـ PDF من السيرفر وجود أداة **wkhtmltopdf** مثبتة على نظام التشغيل.\n\n"
+                    "💡 **خطوات التثبيت السريعة:**\n"
+                    "- **Linux / Ubuntu:** `sudo apt install wkhtmltopdf`\n"
+                    "- **Windows / Mac:** تحميل أداة `wkhtmltopdf` وإضافتها لمسار النظام (PATH).\n\n"
+                    "✨ **البديل الفوري دون الحاجة لبرامج:** يمكنك استخدام زر **فتح العرض المجمع للطباعة (HTML)** على اليسار، ثم الضغط على **طباعة (Ctrl + P)** وحفظ كـ PDF لجميع الشهادات بصفحات A4 مستقلة عبر المتصفح."
+                )
 
         with col_html:
             st.markdown("#### 🖨️ تصدير وطباعة التنسيق الكامل (HTML/PDF)")
