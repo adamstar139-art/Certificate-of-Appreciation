@@ -874,7 +874,7 @@ def build_certificate_single_html(teacher_name):
     seal_logo_html = f'<img class="seal-logo-img" src="{LOGO_SRC}" alt="">' if LOGO_SRC else ""
 
     seal_td_html = f'''
-    <td class="sig-td">
+    <td class="sig-td" style="vertical-align: top;">
         <div class="school-seal">
             <div class="seal-ring">
                 {seal_logo_html}
@@ -899,11 +899,35 @@ def build_certificate_single_html(teacher_name):
         </div>
     </td>'''
 
-    body_text_html = cert_custom_text.replace("\n", "<br>")
+    body_text_html = cert_custom_text.replace(chr(10), "<br>")
     body_html = f'''
     <div class="cert-prefix-text">{cert_custom_prefix}</div>
     <div class="teacher-name">{teacher_name}</div>
     <div class="cert-body-text">{body_text_html}</div>'''
+
+    if len(chosen_signatures) == 1:
+        sig = chosen_signatures[0]
+        sig_img_html = f'<div class="sig-img-container"><img src="{digital_sig_src}" class="digital-signature-img" alt="signature"></div>' if enable_digital_sig else '<div class="sig-img-container"></div>'
+        signatures_table_html = f'''
+        <table class="signatures-table" style="width: 100%; table-layout: fixed;">
+            <tr>
+                <td style="width: 32%;"></td>
+                <td class="sig-td" style="width: 36%; text-align: center; vertical-align: top;">
+                    <div class="sig-role">{sig['role']}</div>
+                    <div class="sig-name">{sig['name']}</div>
+                    {sig_img_html}
+                </td>
+                {seal_td_html}
+            </tr>
+        </table>'''
+    else:
+        signatures_table_html = f'''
+        <table class="signatures-table">
+            <tr>
+                {sigs_tds}
+                {seal_td_html}
+            </tr>
+        </table>'''
 
     return f'''
     <div class="certificate-container">
@@ -943,18 +967,15 @@ def build_certificate_single_html(teacher_name):
                 {body_html}
             </div>
 
-            <table class="signatures-table">
-                <tr>
-                    {sigs_tds}
-                    {seal_td_html}
-                </tr>
-            </table>
+            {signatures_table_html}
 
             <div class="cert-footer-date">تاريخ الإصدار: {formatted_date}</div>
-           
+            <div class="cert-footer-serial">الرقم التسلسلي: THG-{formatted_date.replace("-", "")}-001</div>
         </div>
     </div>
     '''
+
+
 
 ###### ==========================================================
 ###### 9. Full Batch Certificates Document HTML Generator
