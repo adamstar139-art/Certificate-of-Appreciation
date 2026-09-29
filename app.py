@@ -580,8 +580,8 @@ body {
     direction: rtl; 
 }
 
-.header-side { 
-    font-size: 11.5px; 
+.header-side {
+    font-size: 14px; 
     font-weight: 700; 
     color: #1e293b; 
     line-height: 1.5; 
@@ -594,10 +594,10 @@ body {
     direction: ltr; 
 }
 
-.saudi-title { 
-    color: #006C35; 
-    font-weight: 900; 
-    font-size: 12.5px; 
+.saudi-title {
+    color: #006C35;
+    font-weight: 900;
+    font-size: 15.5px; 
 }
 
 .office-highlight { 
@@ -608,7 +608,7 @@ body {
     border-radius: 6px; 
     font-weight: 800; 
     border: 1px solid #D4AF37; 
-    font-size: 11px; 
+    font-size: 13px; 
     margin-top: 2px; 
 }
 
@@ -629,7 +629,7 @@ body {
 
 .dept-sub-badge { 
     display: inline-block; 
-    font-size: 11px; 
+    font-size: 13.5px; 
     color: #ffffff; 
     background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); 
     padding: 2px 14px; 
@@ -642,9 +642,9 @@ body {
     display: inline-block; 
     background: linear-gradient(135deg, #006C35 0%, #0B2A4A 100%); 
     color: #ffffff; 
-    font-size: 21px; 
+    font-size: 26px; 
     font-weight: 900; 
-    padding: 5px 40px; 
+    padding: 6px 48px; 
     border-radius: 28px; 
     border: 2px solid #D4AF37; 
     box-shadow: 0 4px 14px rgba(0,108,53,0.25); 
@@ -657,14 +657,14 @@ body {
     padding: 0 16px; 
 }
 
-.cert-prefix-text { 
-    font-size: 14.5px; 
+.cert-prefix-text {
+    font-size: 17.5px; 
     font-weight: 700; 
     color: #334155; 
 }
 
 .teacher-name { 
-    font-size: 27px; 
+    font-size: 33px; 
     font-weight: 900; 
     color: #006C35; 
     margin: 4px 0; 
@@ -676,12 +676,12 @@ body {
 .teacher-name::before, .teacher-name::after { 
     content: " ✦ "; 
     color: #D4AF37; 
-    font-size: 16px; 
+    font-size: 20px; 
     vertical-align: middle; 
 }
 
 .course-name { 
-    font-size: 24px; 
+    font-size: 29px; 
     font-weight: 900; 
     color: #006C35; 
     margin: 6px 0; 
@@ -694,13 +694,13 @@ body {
 .course-name::before, .course-name::after { 
     content: " ✦ "; 
     color: #D4AF37; 
-    font-size: 15px; 
+    font-size: 18px; 
     vertical-align: middle; 
 }
 
-.cert-body-text { 
-    font-size: 15px; 
-    line-height: 1.8; 
+.cert-body-text {
+    font-size: 18px;
+    line-height: 1.85; 
     color: #1e293b; 
     font-weight: 600; 
 }
@@ -745,14 +745,14 @@ body {
 }
 
 .sig-role { 
-    font-size: 12px; 
+    font-size: 15px; 
     font-weight: 800; 
     color: #006C35; 
     margin-bottom: 2px; 
 }
 
 .sig-name { 
-    font-size: 13.5px; 
+    font-size: 17px; 
     font-weight: 800; 
     color: #0f172a; 
     margin-top: 0px; 
@@ -802,7 +802,7 @@ body {
 
 .seal-caption { 
     margin-top: 3px; 
-    font-size: 9px; 
+    font-size: 10.5px; 
     font-weight: 800; 
     color: #006C35; 
 }
@@ -811,7 +811,7 @@ body {
     position: absolute; 
     bottom: 8px; 
     right: 28px; 
-    font-size: 10.5px; 
+    font-size: 13px; 
     color: #64748b; 
     font-weight: 700; 
 }
@@ -820,7 +820,7 @@ body {
     position: absolute; 
     bottom: 8px; 
     left: 28px; 
-    font-size: 10.5px; 
+    font-size: 13px; 
     color: #64748b; 
     font-weight: 700; 
     direction: ltr; 
